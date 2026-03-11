@@ -1,23 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function Home() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+  const [supabaseOk, setSupabaseOk] = useState<boolean | null>(null);
+
+  // Check Supabase connection on mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        if (!url) {
+          setSupabaseOk(false);
+          setError("Configuration error: Supabase URL not found. Please redeploy.");
+          return;
+        }
+        // Simple health check
+        const res = await fetch(`${url}/rest/v1/`, {
+          headers: {
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+          },
+        });
+        setSupabaseOk(res.ok);
+      } catch (e) {
+        setSupabaseOk(false);
+      }
+    };
+    checkConnection();
+  }, []);
 
   const handleLogin = async () => {
     if (!email) return;
+    setError("");
     setLoading(true);
-    const redirectBase = window.location.origin;
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${redirectBase}/onboarding` },
-    });
+
+    try {
+      const redirectBase = window.location.origin;
+      const { error: authError } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${redirectBase}/onboarding` },
+      });
+
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+        return;
+      }
+
+      setSent(true);
+    } catch (e: any) {
+      setError(e?.message || "An unexpected error occurred. Please try again.");
+    }
     setLoading(false);
-    if (!error) setSent(true);
   };
 
   return (
@@ -87,18 +126,29 @@ export default function Home() {
                   type="email"
                   placeholder="your@email.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setError(""); }}
                   onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                   className="flex-1 bg-card border border-border rounded-lg px-4 py-3 text-sm text-whisper placeholder:text-shadow/40 focus:border-amber/40 focus:outline-none transition-colors"
                 />
                 <button
                   onClick={handleLogin}
-                  disabled={loading}
+                  disabled={loading || !email}
                   className="bg-amber text-void px-6 py-3 rounded-lg text-sm font-semibold hover:bg-amber/90 transition-colors disabled:opacity-50 whitespace-nowrap"
                 >
-                  {loading ? "..." : "Let nobody write for you →"}
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-void/30 border-t-void rounded-full animate-spin" />
+                    </span>
+                  ) : (
+                    "Let nobody write for you →"
+                  )}
                 </button>
               </div>
+              {error && (
+                <div className="mt-3 text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2">
+                  {error}
+                </div>
+              )}
               <div className="text-xs text-shadow/40 mt-3">
                 Free beta. No credit card. Magic link login.
               </div>
@@ -140,36 +190,15 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <div className="text-xs tracking-[0.3em] text-amber uppercase mb-3">How it works</div>
-            <h2 className="font-serif text-3xl md:text-4xl">
-              Three steps. Zero effort.
-            </h2>
+            <h2 className="font-serif text-3xl md:text-4xl">Three steps. Zero effort.</h2>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              {
-                step: "01",
-                title: "We learn your voice",
-                desc: "Connect your LinkedIn profile and website. Tell us your expertise, your tone, your goals. Takes 5 minutes. We build your AI voice profile.",
-                icon: "🎙️",
-              },
-              {
-                step: "02",
-                title: "Nobody writes for you",
-                desc: "Every morning, we scan trending topics in your industry, match them to your expertise, and generate 2-3 posts in your voice. With visuals.",
-                icon: "✍️",
-              },
-              {
-                step: "03",
-                title: "You just approve",
-                desc: "Open the app. See your posts. Tap approve, edit, or skip. 30 seconds. Your LinkedIn stays active, your calendar stays free.",
-                icon: "✅",
-              },
+              { step: "01", title: "We learn your voice", desc: "Connect your LinkedIn profile and website. Tell us your expertise, your tone, your goals. Takes 5 minutes.", icon: "🎙️" },
+              { step: "02", title: "Nobody writes for you", desc: "Every morning, we scan trending topics in your industry and generate 2-3 posts in your voice.", icon: "✍️" },
+              { step: "03", title: "You just approve", desc: "Open the app. See your posts. Tap approve, edit, or skip. 30 seconds. Done.", icon: "✅" },
             ].map((item) => (
-              <div
-                key={item.step}
-                className="bg-midnight border border-border rounded-2xl p-6 relative group hover:border-amber/20 transition-colors"
-              >
+              <div key={item.step} className="bg-midnight border border-border rounded-2xl p-6 hover:border-amber/20 transition-colors">
                 <div className="text-3xl mb-4">{item.icon}</div>
                 <div className="text-amber text-xs font-mono mb-2">{item.step}</div>
                 <div className="text-whisper font-medium text-base mb-2">{item.title}</div>
@@ -184,94 +213,48 @@ export default function Home() {
       <section className="py-20 px-6 bg-midnight border-y border-border/50">
         <div className="max-w-3xl mx-auto text-center">
           <div className="text-xs tracking-[0.3em] text-amber uppercase mb-3">The problem</div>
-          <h2 className="font-serif text-3xl md:text-4xl mb-8">
-            LinkedIn ghostwriting is broken.
-          </h2>
+          <h2 className="font-serif text-3xl md:text-4xl mb-8">LinkedIn ghostwriting is broken.</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
             <div className="bg-void border border-border rounded-xl p-6">
               <div className="text-red-400 text-sm font-medium mb-3">DIY approach</div>
               <div className="text-shadow text-sm leading-relaxed space-y-2">
-                <p>45+ minutes per post.</p>
-                <p>Staring at blank screens.</p>
-                <p>Inconsistent posting schedule.</p>
-                <p>Your time costs more than this.</p>
+                <p>45+ minutes per post.</p><p>Staring at blank screens.</p><p>Inconsistent posting schedule.</p><p>Your time costs more than this.</p>
               </div>
               <div className="mt-4 text-xs text-red-400/60">Result: you post once, then ghost for 3 weeks.</div>
             </div>
             <div className="bg-void border border-border rounded-xl p-6">
               <div className="text-red-400 text-sm font-medium mb-3">Agency / Ghostwriter</div>
               <div className="text-shadow text-sm leading-relaxed space-y-2">
-                <p>€2,000-5,000/month per profile.</p>
-                <p>Onboarding takes weeks.</p>
-                <p>Never quite sounds like you.</p>
-                <p>Doesn't scale to your team.</p>
+                <p>€2,000-5,000/month per profile.</p><p>Onboarding takes weeks.</p><p>Never quite sounds like you.</p><p>Doesn't scale to your team.</p>
               </div>
               <div className="mt-4 text-xs text-red-400/60">Result: generic content that screams "ghostwritten."</div>
             </div>
           </div>
-
           <div className="mt-8 bg-void border border-amber/20 rounded-xl p-6">
             <div className="text-amber text-sm font-medium mb-3">nobod.ai</div>
             <div className="text-whisper text-sm leading-relaxed">
               €99/month. Set up in 5 minutes. Posts every day. Sounds exactly like you.
-              <br />
-              <span className="text-shadow">Because nobody should spend hours writing LinkedIn posts.</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing Preview */}
+      {/* Pricing */}
       <section id="pricing" className="py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <div className="text-xs tracking-[0.3em] text-amber uppercase mb-3">Pricing</div>
-            <h2 className="font-serif text-3xl md:text-4xl mb-3">
-              Less than a coffee per day.
-            </h2>
+            <h2 className="font-serif text-3xl md:text-4xl mb-3">Less than a coffee per day.</h2>
             <p className="text-shadow text-sm">Cancel anytime. No contracts.</p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              {
-                name: "Starter",
-                price: "49",
-                desc: "For individuals getting started",
-                features: ["5 posts per week", "Voice profile", "Email approval", "Basic analytics"],
-                cta: "Start free",
-                highlight: false,
-              },
-              {
-                name: "Pro",
-                price: "99",
-                desc: "For serious LinkedIn presence",
-                features: ["Daily posts", "Advanced voice training", "Image generation", "Priority support", "Custom topics"],
-                cta: "Most popular",
-                highlight: true,
-              },
-              {
-                name: "Enterprise",
-                price: "299",
-                desc: "For teams & corporate influencers",
-                features: ["Unlimited posts", "Team dashboard", "Multiple profiles", "API access", "Dedicated success manager"],
-                cta: "Contact us",
-                highlight: false,
-              },
+              { name: "Starter", price: "49", desc: "For individuals getting started", features: ["5 posts per week", "Voice profile", "Email approval", "Basic analytics"], cta: "Start free", highlight: false },
+              { name: "Pro", price: "99", desc: "For serious LinkedIn presence", features: ["Daily posts", "Advanced voice training", "Image generation", "Priority support", "Custom topics"], cta: "Most popular", highlight: true },
+              { name: "Enterprise", price: "299", desc: "For teams & corporate influencers", features: ["Unlimited posts", "Team dashboard", "Multiple profiles", "API access", "Dedicated success manager"], cta: "Contact us", highlight: false },
             ].map((plan) => (
-              <div
-                key={plan.name}
-                className={`rounded-2xl p-6 ${
-                  plan.highlight
-                    ? "bg-card border-2 border-amber relative"
-                    : "bg-midnight border border-border"
-                }`}
-              >
-                {plan.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber text-void text-xs font-bold px-3 py-1 rounded-full">
-                    POPULAR
-                  </div>
-                )}
+              <div key={plan.name} className={`rounded-2xl p-6 ${plan.highlight ? "bg-card border-2 border-amber relative" : "bg-midnight border border-border"}`}>
+                {plan.highlight && <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber text-void text-xs font-bold px-3 py-1 rounded-full">POPULAR</div>}
                 <div className="text-sm text-shadow mb-1">{plan.name}</div>
                 <div className="flex items-baseline gap-1 mb-2">
                   <span className="text-3xl font-serif text-whisper">€{plan.price}</span>
@@ -286,14 +269,7 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-                <button
-                  onClick={() => document.getElementById("cta")?.scrollIntoView({ behavior: "smooth" })}
-                  className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    plan.highlight
-                      ? "bg-amber text-void hover:bg-amber/90"
-                      : "bg-card border border-border text-shadow hover:border-amber/30"
-                  }`}
-                >
+                <button onClick={() => document.getElementById("cta")?.scrollIntoView({ behavior: "smooth" })} className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors ${plan.highlight ? "bg-amber text-void hover:bg-amber/90" : "bg-card border border-border text-shadow hover:border-amber/30"}`}>
                   {plan.cta}
                 </button>
               </div>
@@ -309,26 +285,10 @@ export default function Home() {
             <h2 className="font-serif text-3xl">Questions nobody asks.</h2>
           </div>
           {[
-            {
-              q: "Isn't this cheating?",
-              a: "Every CEO has a speechwriter. Every brand has an agency. Nobody questions that. nobod.ai is the same thing — just faster, cheaper, and it actually sounds like you.",
-            },
-            {
-              q: "Will people know it's AI?",
-              a: "No. We train on your voice, your style, your opinions. The posts contain your expertise and perspective — we just handle the writing. Nobody can tell the difference.",
-            },
-            {
-              q: "What if I don't like a post?",
-              a: "Skip it, edit it, or tell us why. We learn from every rejection and get better at matching your voice over time.",
-            },
-            {
-              q: "Can I still write my own posts?",
-              a: "Of course. nobod.ai handles the consistency — you handle the moments that matter. Best of both worlds.",
-            },
-            {
-              q: "How is this different from ChatGPT?",
-              a: "ChatGPT writes generic content. nobod.ai writes YOUR content — trained on your expertise, your tone, your industry. Plus we handle trending topics, scheduling, and publishing.",
-            },
+            { q: "Isn't this cheating?", a: "Every CEO has a speechwriter. Every brand has an agency. Nobody questions that. nobod.ai is the same thing — just faster, cheaper, and it actually sounds like you." },
+            { q: "Will people know it's AI?", a: "No. We train on your voice, your style, your opinions. The posts contain your expertise and perspective — we just handle the writing." },
+            { q: "What if I don't like a post?", a: "Skip it, edit it, or tell us why. We learn from every rejection and get better at matching your voice." },
+            { q: "How is this different from ChatGPT?", a: "ChatGPT writes generic content. nobod.ai writes YOUR content — trained on your expertise, your tone, your industry. Plus we handle topics, scheduling, and publishing." },
           ].map((faq, i) => (
             <div key={i} className="border-b border-border/50 py-5">
               <div className="text-whisper text-sm font-medium mb-2">{faq.q}</div>
@@ -344,13 +304,8 @@ export default function Home() {
           <h2 className="font-serif text-3xl md:text-4xl mb-4">
             Ready to let <span className="text-amber italic">nobody</span> write for you?
           </h2>
-          <p className="text-shadow text-sm mb-8">
-            Join the beta. First 100 users get lifetime access at the beta price.
-          </p>
-          <button
-            onClick={() => document.getElementById("cta")?.scrollIntoView({ behavior: "smooth" })}
-            className="bg-amber text-void px-8 py-3 rounded-lg text-sm font-semibold hover:bg-amber/90 transition-colors"
-          >
+          <p className="text-shadow text-sm mb-8">Join the beta. First 100 users get lifetime access at the beta price.</p>
+          <button onClick={() => document.getElementById("cta")?.scrollIntoView({ behavior: "smooth" })} className="bg-amber text-void px-8 py-3 rounded-lg text-sm font-semibold hover:bg-amber/90 transition-colors">
             Start free →
           </button>
         </div>
