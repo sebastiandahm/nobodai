@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: #06080c;
+  color: #e5e7eb;
+}
+
+::selection {
+  background: #f59e0b40;
+  color: #fff;
+}
+
+input,
+textarea {
+  background: #111318;
+  border: 1px solid #1a1d24;
+  color: #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #f59e0b40;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #4b5563;
+}
