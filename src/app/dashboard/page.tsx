@@ -170,10 +170,12 @@ export default function Dashboard() {
       {/* Header */}
       <header className="border-b border-border sticky top-0 bg-void/80 backdrop-blur-md z-10">
         <div className="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="text-xl tracking-tight">
-            <span className="font-serif text-whisper">nobod</span>
-            <span className="font-serif text-amber italic">.ai</span>
-          </div>
+          <a href="/" style={{ textDecoration: "none", color: "inherit" }}>
+            <div className="text-xl tracking-tight">
+              <span className="font-serif text-whisper">nobod</span>
+              <span className="font-serif text-amber italic">.ai</span>
+            </div>
+          </a>
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-amber/10 flex items-center justify-center text-amber text-xs font-bold">
@@ -187,6 +189,8 @@ export default function Dashboard() {
                 {profile?.full_name || profile?.email}
               </span>
             </div>
+            <a href="/" style={{ fontSize: 12, color: "#9CA3AF", textDecoration: "none" }}>Home</a>
+            <a href="/account" style={{ fontSize: 12, color: "#9CA3AF", textDecoration: "none" }}>Account</a>
             <button
               onClick={handleSignOut}
               className="text-xs text-shadow/60 hover:text-shadow transition-colors"
