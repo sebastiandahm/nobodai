@@ -10,31 +10,31 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
     if (window.location.hash && window.location.hash.includes("access_token")) {
       supabase.auth.getSession().then(({ data }) => {
         if (data.session) {
-          router.push("/dashboard");
-          return;
+          setIsLoggedIn(true);
+          setCheckingAuth(false);
         }
       });
     }
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
-        router.push("/dashboard");
-      } else {
-        setCheckingAuth(false);
+        setIsLoggedIn(true);
       }
+      setCheckingAuth(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
-        router.push("/dashboard");
+        setIsLoggedIn(true);
       }
     });
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, []);
 
   const handleLogin = async () => {
     if (!email) return;
@@ -46,11 +46,7 @@ export default function Home() {
         email,
         options: { emailRedirectTo: `${redirectBase}/auth/callback` },
       });
-      if (authError) {
-        setError(authError.message);
-        setLoading(false);
-        return;
-      }
+      if (authError) { setError(authError.message); setLoading(false); return; }
       setSent(true);
     } catch (e: any) {
       setError(e?.message || "An unexpected error occurred.");
@@ -60,176 +56,294 @@ export default function Home() {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-void flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-amber/30 border-t-amber rounded-full animate-spin" />
-        </div>
+      <div className="min-h-screen bg-[#06080C] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#F59E0B]/30 border-t-[#F59E0B] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-void text-whisper overflow-hidden">
-      <nav className="flex items-center justify-between px-6 py-5 max-w-5xl mx-auto w-full">
-        <div className="text-2xl tracking-tight">
-          <span className="font-serif">nobod</span>
-          <span className="font-serif text-amber italic">.ai</span>
-        </div>
+    <div className="min-h-screen bg-[#06080C] text-[#E5E7EB] overflow-hidden" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+      <style jsx global>{`
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,0.15); } 50% { box-shadow: 0 0 40px rgba(245,158,11,0.3); } }
+        .fade-up { animation: fadeUp 0.8s ease-out forwards; opacity: 0; }
+        .fade-up-d1 { animation-delay: 0.1s; }
+        .fade-up-d2 { animation-delay: 0.2s; }
+        .fade-up-d3 { animation-delay: 0.3s; }
+        .fade-up-d4 { animation-delay: 0.4s; }
+        .fade-up-d5 { animation-delay: 0.5s; }
+        .fade-in { animation: fadeIn 1s ease-out forwards; opacity: 0; }
+        .shimmer-text { background: linear-gradient(90deg, #F59E0B 0%, #FBBF24 25%, #F59E0B 50%, #FBBF24 75%, #F59E0B 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: shimmer 3s linear infinite; }
+        .float { animation: float 4s ease-in-out infinite; }
+        .glow-card { animation: pulse-glow 3s ease-in-out infinite; }
+        .grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); }
+        .ss { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+      `}</style>
+      <div className="grain" />
+
+      {/* Nav */}
+      <nav className="relative z-10 flex items-center justify-between px-6 md:px-10 py-5 max-w-6xl mx-auto w-full fade-up">
+        <a href="/" className="text-2xl tracking-tight no-underline text-[#E5E7EB]">
+          <span>nobod</span><span className="text-[#F59E0B] italic">.ai</span>
+        </a>
         <div className="flex items-center gap-6">
-          <a href="#how" className="text-xs text-shadow hover:text-whisper transition-colors hidden sm:block">How it works</a>
-          <a href="#pricing" className="text-xs text-shadow hover:text-whisper transition-colors hidden sm:block">Pricing</a>
-          <button onClick={() => document.getElementById("cta")?.scrollIntoView({ behavior: "smooth" })}
-            className="bg-amber text-void px-4 py-2 rounded-lg text-xs font-semibold hover:bg-amber/90 transition-colors">
-            Start free
-          </button>
+          <a href="#how" className="ss text-xs text-[#9CA3AF] hover:text-[#E5E7EB] transition-colors hidden sm:block no-underline">How it works</a>
+          <a href="#pricing" className="ss text-xs text-[#9CA3AF] hover:text-[#E5E7EB] transition-colors hidden sm:block no-underline">Pricing</a>
+          <a href="#team" className="ss text-xs text-[#9CA3AF] hover:text-[#E5E7EB] transition-colors hidden sm:block no-underline">Team</a>
+          {isLoggedIn ? (
+            <button onClick={() => router.push("/dashboard")}
+              className="ss bg-[#F59E0B] text-[#06080C] px-5 py-2.5 rounded-lg text-xs font-semibold hover:bg-[#FBBF24] transition-all">
+              Open Dashboard
+            </button>
+          ) : (
+            <button onClick={() => document.getElementById("cta")?.scrollIntoView({ behavior: "smooth" })}
+              className="ss bg-[#F59E0B] text-[#06080C] px-5 py-2.5 rounded-lg text-xs font-semibold hover:bg-[#FBBF24] transition-all">
+              Start free
+            </button>
+          )}
         </div>
       </nav>
 
-      <section className="flex flex-col items-center text-center px-6 pt-16 pb-20 max-w-4xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border text-xs text-shadow mb-8">
+      {/* Hero */}
+      <section className="relative z-10 flex flex-col items-center text-center px-6 pt-12 pb-20 max-w-5xl mx-auto">
+        {/* Ambient glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[#F59E0B]/5 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="ss inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#1F2937] text-xs text-[#9CA3AF] mb-10 fade-up fade-up-d1 backdrop-blur-sm bg-[#0D1117]/50">
           <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-          Now in beta — first 100 users free
-        </div>
-        <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl leading-[1.1] mb-6 tracking-tight">
-          Nobody has time<br />for LinkedIn.<br />
-          <span className="text-amber italic">Now nobody has to.</span>
-        </h1>
-        <p className="text-shadow text-base md:text-lg max-w-xl mb-10 leading-relaxed">
-          nobod.ai learns your voice, scans trending topics in your industry,
-          writes posts that sound like you, and publishes when you approve.
-        </p>
-        <div className="flex items-center gap-6 mb-16 text-sm text-shadow">
-          <div className="flex items-center gap-2"><span className="text-amber">30s</span> per day</div>
-          <div className="w-px h-4 bg-border" />
-          <div className="flex items-center gap-2"><span className="text-amber">0</span> writing required</div>
-          <div className="w-px h-4 bg-border" />
-          <div className="flex items-center gap-2"><span className="text-amber">100%</span> your voice</div>
+          Now in beta &mdash; first 100 users free
         </div>
 
-        <div id="cta" className="w-full max-w-md">
-          {!sent ? (
+        <h1 className="text-4xl sm:text-5xl md:text-7xl leading-[1.05] mb-6 tracking-tight fade-up fade-up-d2">
+          Nobody has time<br />for LinkedIn.<br />
+          <span className="shimmer-text italic">Now nobody has to.</span>
+        </h1>
+
+        <p className="ss text-[#9CA3AF] text-base md:text-lg max-w-xl mb-10 leading-relaxed fade-up fade-up-d3">
+          nobod.ai learns your voice, finds trending topics in your industry,
+          writes posts that sound like you, and publishes when you approve.
+        </p>
+
+        <div className="ss flex items-center gap-6 mb-14 text-sm text-[#9CA3AF] fade-up fade-up-d4">
+          <div className="flex items-center gap-2"><span className="text-[#F59E0B] font-semibold">30s</span> per day</div>
+          <div className="w-px h-4 bg-[#1F2937]" />
+          <div className="flex items-center gap-2"><span className="text-[#F59E0B] font-semibold">0</span> writing</div>
+          <div className="w-px h-4 bg-[#1F2937]" />
+          <div className="flex items-center gap-2"><span className="text-[#F59E0B] font-semibold">100%</span> your voice</div>
+        </div>
+
+        {/* CTA */}
+        <div id="cta" className="w-full max-w-md fade-up fade-up-d5">
+          {isLoggedIn ? (
+            <button onClick={() => router.push("/dashboard")}
+              className="ss bg-[#F59E0B] text-[#06080C] px-8 py-4 rounded-xl text-sm font-bold hover:bg-[#FBBF24] transition-all w-full glow-card">
+              Open your Dashboard &rarr;
+            </button>
+          ) : !sent ? (
             <>
-              <div className="text-sm text-shadow mb-3">Sign up or log in — same magic link.</div>
+              <div className="ss text-sm text-[#6B7280] mb-3">Sign up or log in &mdash; same magic link.</div>
               <div className="flex gap-2">
                 <input type="email" placeholder="your@email.com" value={email}
                   onChange={(e) => { setEmail(e.target.value); setError(""); }}
                   onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                  className="flex-1 bg-card border border-border rounded-lg px-4 py-3 text-sm text-whisper placeholder:text-shadow/40 focus:border-amber/40 focus:outline-none transition-colors" />
+                  className="ss flex-1 bg-[#111827] border border-[#1F2937] rounded-xl px-4 py-3.5 text-sm text-[#E5E7EB] placeholder:text-[#4B5563] focus:border-[#F59E0B]/40 focus:outline-none transition-colors" />
                 <button onClick={handleLogin} disabled={loading || !email}
-                  className="bg-amber text-void px-6 py-3 rounded-lg text-sm font-semibold hover:bg-amber/90 transition-colors disabled:opacity-50 whitespace-nowrap">
-                  {loading ? <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-void/30 border-t-void rounded-full animate-spin" /></span> : "Let nobody write for you →"}
+                  className="ss bg-[#F59E0B] text-[#06080C] px-6 py-3.5 rounded-xl text-sm font-bold hover:bg-[#FBBF24] transition-all disabled:opacity-50 whitespace-nowrap glow-card">
+                  {loading ? <span className="w-4 h-4 border-2 border-[#06080C]/30 border-t-[#06080C] rounded-full animate-spin inline-block" /> : "Start free \u2192"}
                 </button>
               </div>
-              {error && (
-                <div className="mt-3 text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2">{error}</div>
-              )}
-              <div className="text-xs text-shadow/40 mt-3">Free beta. No credit card. No password needed.</div>
+              {error && <div className="ss mt-3 text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-4 py-2">{error}</div>}
+              <div className="ss text-xs text-[#4B5563] mt-3">No credit card. No password. We send you a magic link.</div>
             </>
           ) : (
-            <div className="bg-card border border-amber/20 rounded-xl p-6 text-center">
-              <div className="text-amber text-lg font-serif mb-2">Check your inbox</div>
-              <div className="text-shadow text-sm">
-                We sent a login link to <span className="text-whisper">{email}</span>.<br />
+            <div className="bg-[#111827] border border-[#F59E0B]/20 rounded-2xl p-8 text-center">
+              <div className="text-[#F59E0B] text-xl mb-2">Check your inbox</div>
+              <div className="ss text-[#9CA3AF] text-sm">
+                We sent a login link to <span className="text-[#E5E7EB] font-medium">{email}</span>.<br />
                 Click it to access your dashboard.
               </div>
-              <button onClick={() => setSent(false)}
-                className="mt-4 text-xs text-shadow hover:text-whisper transition-colors">
-                Use a different email
-              </button>
+              <button onClick={() => setSent(false)} className="ss mt-4 text-xs text-[#6B7280] hover:text-[#E5E7EB] transition-colors">Use a different email</button>
             </div>
           )}
         </div>
       </section>
 
-      <section className="border-y border-border/50 py-6">
-        <div className="max-w-4xl mx-auto px-6 flex items-center justify-center gap-8 sm:gap-16 text-center">
-          <div><div className="text-2xl font-serif text-amber">12,847</div><div className="text-xs text-shadow">posts generated</div></div>
-          <div className="w-px h-8 bg-border" />
-          <div><div className="text-2xl font-serif text-amber">0</div><div className="text-xs text-shadow">detected as AI</div></div>
-          <div className="w-px h-8 bg-border" />
-          <div><div className="text-2xl font-serif text-amber">30s</div><div className="text-xs text-shadow">avg. daily effort</div></div>
+      {/* Social Proof */}
+      <section className="relative z-10 border-y border-[#1F2937]/50 py-8 bg-[#0D1117]/50 backdrop-blur-sm">
+        <div className="max-w-4xl mx-auto px-6 flex items-center justify-center gap-10 sm:gap-20 text-center">
+          <div><div className="text-3xl text-[#F59E0B]">12,847</div><div className="ss text-xs text-[#6B7280] mt-1">posts generated</div></div>
+          <div className="w-px h-10 bg-[#1F2937]" />
+          <div><div className="text-3xl text-[#F59E0B]">0%</div><div className="ss text-xs text-[#6B7280] mt-1">detected as AI</div></div>
+          <div className="w-px h-10 bg-[#1F2937]" />
+          <div><div className="text-3xl text-[#F59E0B]">30s</div><div className="ss text-xs text-[#6B7280] mt-1">avg. daily effort</div></div>
         </div>
       </section>
 
-      <section id="how" className="py-20 px-6">
-        <div className="max-w-4xl mx-auto">
+      {/* How it works */}
+      <section id="how" className="relative z-10 py-24 px-6">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <div className="text-xs tracking-[0.3em] text-amber uppercase mb-3">How it works</div>
-            <h2 className="font-serif text-3xl md:text-4xl">Three steps. Zero effort.</h2>
+            <div className="ss text-xs tracking-[0.3em] text-[#F59E0B] uppercase mb-4">How it works</div>
+            <h2 className="text-3xl md:text-5xl tracking-tight">Three steps. Zero effort.</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { step: "01", title: "We learn your voice", desc: "Tell us your expertise, your tone, your goals. Takes 5 minutes.", icon: "🎙️" },
-              { step: "02", title: "Nobody writes for you", desc: "Every morning, we scan trending topics and generate posts in your voice.", icon: "✍️" },
-              { step: "03", title: "You just approve", desc: "Open the app. See your posts. Tap approve, edit, or skip. 30 seconds.", icon: "✅" },
+              { step: "01", title: "We learn your voice", desc: "Complete a 5-minute voice profile. Tell us your expertise, your opinions, your tone. We build a writing DNA that's uniquely yours.", icon: "\uD83C\uDF99\uFE0F", delay: "0s" },
+              { step: "02", title: "Nobody writes for you", desc: "Every morning at 6:00, our AI scans trending topics in your industry and generates 2-3 posts in your exact voice.", icon: "\u270D\uFE0F", delay: "0.15s" },
+              { step: "03", title: "You just approve", desc: "Open the app. See your posts as LinkedIn previews. Tap approve, edit, or skip. 30 seconds. Your LinkedIn stays active.", icon: "\u2705", delay: "0.3s" },
             ].map((item) => (
-              <div key={item.step} className="bg-midnight border border-border rounded-2xl p-6 hover:border-amber/20 transition-colors">
-                <div className="text-3xl mb-4">{item.icon}</div>
-                <div className="text-amber text-xs font-mono mb-2">{item.step}</div>
-                <div className="text-whisper font-medium text-base mb-2">{item.title}</div>
-                <div className="text-shadow text-sm leading-relaxed">{item.desc}</div>
+              <div key={item.step} className="group bg-gradient-to-b from-[#111827] to-[#0D1117] border border-[#1F2937] rounded-2xl p-7 hover:border-[#F59E0B]/30 transition-all duration-500 hover:-translate-y-1" style={{ animationDelay: item.delay }}>
+                <div className="text-4xl mb-5 float" style={{ animationDelay: item.delay }}>{item.icon}</div>
+                <div className="ss text-[#F59E0B] text-xs font-mono mb-3 tracking-wider">{item.step}</div>
+                <div className="text-xl mb-3">{item.title}</div>
+                <div className="ss text-[#9CA3AF] text-sm leading-relaxed">{item.desc}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-midnight border-y border-border/50">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="text-xs tracking-[0.3em] text-amber uppercase mb-3">The problem</div>
-          <h2 className="font-serif text-3xl md:text-4xl mb-8">LinkedIn ghostwriting is broken.</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-            <div className="bg-void border border-border rounded-xl p-6">
-              <div className="text-red-400 text-sm font-medium mb-3">DIY approach</div>
-              <div className="text-shadow text-sm leading-relaxed space-y-2">
-                <p>45+ minutes per post.</p><p>Staring at blank screens.</p><p>Inconsistent posting.</p><p>Your time costs more than this.</p>
-              </div>
-            </div>
-            <div className="bg-void border border-border rounded-xl p-6">
-              <div className="text-red-400 text-sm font-medium mb-3">Agency / Ghostwriter</div>
-              <div className="text-shadow text-sm leading-relaxed space-y-2">
-                <p>{"€"}2,000-5,000/month.</p><p>Onboarding takes weeks.</p><p>Never quite sounds like you.</p><p>Doesn{"’"}t scale.</p>
-              </div>
-            </div>
+      {/* The Problem */}
+      <section className="relative z-10 py-24 px-6">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#06080C] via-[#0D1117] to-[#06080C]" />
+        <div className="relative max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="ss text-xs tracking-[0.3em] text-[#F59E0B] uppercase mb-4">The problem</div>
+            <h2 className="text-3xl md:text-5xl tracking-tight">LinkedIn ghostwriting<br /><span className="text-[#6B7280]">is broken.</span></h2>
           </div>
-          <div className="mt-8 bg-void border border-amber/20 rounded-xl p-6">
-            <div className="text-amber text-sm font-medium mb-3">nobod.ai</div>
-            <div className="text-whisper text-sm">{"€"}79/month. Set up in 5 minutes. Posts every day. Sounds exactly like you.</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="bg-[#111827]/80 border border-[#1F2937] rounded-2xl p-6 backdrop-blur-sm">
+              <div className="ss text-red-400 text-xs font-semibold uppercase tracking-wider mb-4">DIY</div>
+              <div className="text-3xl mb-3 text-[#E5E7EB]">{"\u20AC"}0</div>
+              <div className="ss text-[#6B7280] text-sm leading-relaxed space-y-2">
+                <p>45+ minutes per post</p><p>Inconsistent schedule</p><p>Writer&apos;s block</p><p className="text-red-400/60 text-xs pt-2">Result: you ghost LinkedIn for weeks</p>
+              </div>
+            </div>
+            <div className="bg-[#111827]/80 border border-[#1F2937] rounded-2xl p-6 backdrop-blur-sm">
+              <div className="ss text-red-400 text-xs font-semibold uppercase tracking-wider mb-4">Agency</div>
+              <div className="text-3xl mb-3 text-[#E5E7EB]">{"\u20AC"}3,000+<span className="text-sm text-[#6B7280]">/mo</span></div>
+              <div className="ss text-[#6B7280] text-sm leading-relaxed space-y-2">
+                <p>Weeks of onboarding</p><p>Never quite your voice</p><p>Doesn&apos;t scale</p><p className="text-red-400/60 text-xs pt-2">Result: generic ghostwritten content</p>
+              </div>
+            </div>
+            <div className="bg-gradient-to-b from-[#1a1505] to-[#111827] border border-[#F59E0B]/30 rounded-2xl p-6 glow-card">
+              <div className="ss text-[#F59E0B] text-xs font-semibold uppercase tracking-wider mb-4">nobod.ai</div>
+              <div className="text-3xl mb-3 text-[#E5E7EB]">{"\u20AC"}79<span className="text-sm text-[#6B7280]">/mo</span></div>
+              <div className="ss text-[#9CA3AF] text-sm leading-relaxed space-y-2">
+                <p>Set up in 5 minutes</p><p>Posts every single day</p><p>Sounds exactly like you</p><p className="text-[#F59E0B]/60 text-xs pt-2">Result: consistent presence, zero effort</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section id="pricing" className="py-20 px-6">
+      {/* Meet the CEO */}
+      <section id="team" className="relative z-10 py-24 px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="text-xs tracking-[0.3em] text-amber uppercase mb-3">Pricing</div>
-            <h2 className="font-serif text-3xl md:text-4xl mb-3">Less than a coffee per day.</h2>
-            <p className="text-shadow text-sm">Cancel anytime. No contracts.</p>
+          <div className="text-center mb-16">
+            <div className="ss text-xs tracking-[0.3em] text-[#F59E0B] uppercase mb-4">Meet the team</div>
+            <h2 className="text-3xl md:text-5xl tracking-tight">Built by humans.<br /><span className="text-[#F59E0B] italic">Powered by nobody.</span></h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[
-              { name: "Free", price: "0", desc: "Try it out", features: ["3 posts per week", "Basic voice profile", "nobod.ai watermark", "Email approval"], cta: "Start free", highlight: false },
-              { name: "Starter", price: "29", desc: "For consistent presence", features: ["Daily posts", "Voice training", "No watermark", "Email approval"], cta: "Start free trial", highlight: false },
-              { name: "Pro", price: "79", desc: "For serious growth", features: ["Daily posts", "Advanced voice", "Image generation", "Custom topics", "Priority support"], cta: "Most popular", highlight: true },
-              { name: "Enterprise", price: "249", desc: "For teams", features: ["Unlimited posts", "Team dashboard", "Multiple profiles", "API access", "Success manager"], cta: "Contact us", highlight: false },
-            ].map((plan) => (
-              <div key={plan.name} className={`rounded-2xl p-5 ${plan.highlight ? "bg-card border-2 border-amber relative" : "bg-midnight border border-border"}`}>
-                {plan.highlight && <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber text-void text-xs font-bold px-3 py-1 rounded-full">POPULAR</div>}
-                <div className="text-sm text-shadow mb-1">{plan.name}</div>
-                <div className="flex items-baseline gap-1 mb-2">
-                  <span className="text-3xl font-serif text-whisper">{plan.price === "0" ? "Free" : "€" + plan.price}</span>
-                  {plan.price !== "0" && <span className="text-xs text-shadow">/month</span>}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Arie Muth */}
+            <div className="bg-gradient-to-br from-[#111827] to-[#0D1117] border border-[#1F2937] rounded-3xl p-8 hover:border-[#F59E0B]/20 transition-all">
+              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#F59E0B]/20 to-[#F59E0B]/5 border border-[#F59E0B]/20 flex items-center justify-center mb-6 overflow-hidden">
+                <div className="text-4xl">&#x1F469;&#x200D;&#x1F4BC;</div>
+              </div>
+              <div className="text-xl mb-1">Arie Muth</div>
+              <div className="ss text-[#F59E0B] text-sm mb-4">CEO &amp; Founder</div>
+              <div className="ss text-[#9CA3AF] text-sm leading-relaxed mb-4">
+                Former strategy consultant. Realized that LinkedIn is the highest-ROI channel for B2B professionals &mdash; and that 95% of them don&apos;t use it because they lack the time.
+                Built nobod.ai to solve her own problem first. Now solving it for thousands.
+              </div>
+              <div className="ss flex items-center gap-2 text-xs text-[#6B7280]">
+                <span className="w-2 h-2 bg-green-400 rounded-full" />
+                Posts daily on LinkedIn using nobod.ai
+              </div>
+            </div>
+            {/* The AI */}
+            <div className="space-y-6">
+              <div className="bg-[#111827]/50 border border-[#1F2937] rounded-2xl p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center text-lg">&#x1F916;</div>
+                  <div>
+                    <div className="text-sm">Nobody</div>
+                    <div className="ss text-xs text-[#6B7280]">The AI that writes for you</div>
+                  </div>
                 </div>
-                <div className="text-xs text-shadow mb-5">{plan.desc}</div>
-                <div className="space-y-2 mb-5">
+                <div className="ss text-[#9CA3AF] text-sm leading-relaxed">
+                  Trained on thousands of high-performing LinkedIn posts. Learns your unique voice in minutes. Gets better with every post you approve or reject.
+                </div>
+              </div>
+              <div className="bg-[#111827]/50 border border-[#1F2937] rounded-2xl p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center text-lg">&#x1F3E2;</div>
+                  <div>
+                    <div className="text-sm">OPCORE Partners</div>
+                    <div className="ss text-xs text-[#6B7280]">Z{"\u00FC"}rich, Switzerland</div>
+                  </div>
+                </div>
+                <div className="ss text-[#9CA3AF] text-sm leading-relaxed">
+                  nobod.ai is built by OPCORE Partners, a management consulting firm specializing in Digital Commerce and AI Transformation for the European market.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonial */}
+      <section className="relative z-10 py-20 px-6 border-y border-[#1F2937]/30">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="text-2xl md:text-3xl leading-relaxed mb-8 italic text-[#E5E7EB]/90">
+            &ldquo;I was spending 2 hours a week on LinkedIn posts. Now I spend 2 minutes. The posts actually perform better because they&apos;re consistent and on-trend.&rdquo;
+          </div>
+          <div className="ss flex items-center justify-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F59E0B]/20 to-[#F59E0B]/5 flex items-center justify-center text-sm border border-[#F59E0B]/20">AM</div>
+            <div className="text-left">
+              <div className="text-sm">Arie Muth</div>
+              <div className="text-xs text-[#6B7280]">CEO, nobod.ai &mdash; using her own product daily</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="relative z-10 py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="ss text-xs tracking-[0.3em] text-[#F59E0B] uppercase mb-4">Pricing</div>
+            <h2 className="text-3xl md:text-5xl tracking-tight mb-3">Less than a coffee per day.</h2>
+            <p className="ss text-[#6B7280] text-sm">Cancel anytime. No contracts. No surprises.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { name: "Free", price: "0", period: "", desc: "Try it out", features: ["3 posts per week", "Basic voice profile", "nobod.ai watermark", "Email approval"], cta: "Start free", pop: false },
+              { name: "Starter", price: "29", period: "/mo", desc: "Consistent presence", features: ["Daily posts", "Advanced voice", "No watermark", "Email approval", "Topic suggestions"], cta: "Start trial", pop: false },
+              { name: "Pro", price: "79", period: "/mo", desc: "Serious growth", features: ["Daily posts", "Premium voice AI", "Image generation", "Custom topics", "Analytics", "Priority support"], cta: "Most popular", pop: true },
+              { name: "Enterprise", price: "249", period: "/mo", desc: "For teams", features: ["Unlimited posts", "Team dashboard", "Multi-profile", "API access", "Dedicated support", "Custom integrations"], cta: "Contact us", pop: false },
+            ].map((plan) => (
+              <div key={plan.name} className={`rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 relative ${plan.pop ? "bg-gradient-to-b from-[#1a1505] to-[#111827] border-2 border-[#F59E0B]/50 glow-card" : "bg-[#111827]/60 border border-[#1F2937] hover:border-[#374151]"}`}>
+                {plan.pop && <div className="ss absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F59E0B] text-[#06080C] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Popular</div>}
+                <div className="ss text-xs text-[#9CA3AF] mb-2 font-medium">{plan.name}</div>
+                <div className="flex items-baseline gap-0.5 mb-1">
+                  <span className="text-3xl text-[#E5E7EB]">{plan.price === "0" ? "Free" : "\u20AC" + plan.price}</span>
+                  {plan.period && <span className="ss text-xs text-[#6B7280]">{plan.period}</span>}
+                </div>
+                <div className="ss text-xs text-[#6B7280] mb-5">{plan.desc}</div>
+                <div className="space-y-2.5 mb-6">
                   {plan.features.map((f) => (
-                    <div key={f} className="flex items-center gap-2 text-xs">
-                      <span className="text-amber">{"✓"}</span><span className="text-shadow">{f}</span>
+                    <div key={f} className="ss flex items-center gap-2.5 text-xs">
+                      <span className="text-[#F59E0B] text-[10px]">{"\u2713"}</span><span className="text-[#9CA3AF]">{f}</span>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => document.getElementById("cta")?.scrollIntoView({ behavior: "smooth" })}
-                  className={`w-full py-2 rounded-lg text-xs font-medium transition-colors ${plan.highlight ? "bg-amber text-void hover:bg-amber/90" : "bg-card border border-border text-shadow hover:border-amber/30"}`}>
+                <button onClick={() => isLoggedIn ? router.push("/dashboard") : document.getElementById("cta")?.scrollIntoView({ behavior: "smooth" })}
+                  className={`ss w-full py-2.5 rounded-xl text-xs font-semibold transition-all ${plan.pop ? "bg-[#F59E0B] text-[#06080C] hover:bg-[#FBBF24]" : "bg-[#1F2937] text-[#9CA3AF] hover:bg-[#374151] hover:text-[#E5E7EB]"}`}>
                   {plan.cta}
                 </button>
               </div>
@@ -238,39 +352,71 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-midnight border-t border-border/50">
+      {/* FAQ */}
+      <section className="relative z-10 py-24 px-6 bg-[#0D1117]/50">
         <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-12"><h2 className="font-serif text-3xl">Questions nobody asks.</h2></div>
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl">Questions nobody asks.</h2>
+          </div>
           {[
-            { q: "Isn’t this cheating?", a: "Every CEO has a speechwriter. Every brand has an agency. Nobody questions that. nobod.ai is the same thing — just faster, cheaper, and it actually sounds like you." },
-            { q: "Will people know it’s AI?", a: "No. We train on your voice, your style, your opinions. The posts contain your expertise and perspective — we just handle the writing." },
-            { q: "What if I don’t like a post?", a: "Skip it, edit it, or tell us why. We learn from every rejection and get better at matching your voice." },
-            { q: "How is this different from ChatGPT?", a: "ChatGPT writes generic content. nobod.ai writes YOUR content — trained on your expertise, your tone, your industry. Plus we handle topics, scheduling, and publishing." },
+            { q: "Isn\u2019t this cheating?", a: "Every CEO has a speechwriter. Every brand has an agency. nobod.ai is the same thing \u2014 faster, cheaper, and it sounds like you." },
+            { q: "Will people know it\u2019s AI?", a: "No. We train on your voice, your style, your opinions. The posts contain your real expertise \u2014 we just handle the writing part." },
+            { q: "What if I don\u2019t like a post?", a: "Skip it, edit it, or reject it. Our AI learns from every interaction and gets better at matching your voice over time." },
+            { q: "How is this different from ChatGPT?", a: "ChatGPT writes generic content for everyone. nobod.ai writes YOUR content \u2014 trained on your expertise, your tone, your industry. Plus we handle topic discovery, scheduling, and publishing." },
+            { q: "Can I try it for free?", a: "Yes. The free plan gives you 3 posts per week with a small watermark. Upgrade when you\u2019re convinced \u2014 which usually takes about a week." },
           ].map((faq, i) => (
-            <div key={i} className="border-b border-border/50 py-5">
-              <div className="text-whisper text-sm font-medium mb-2">{faq.q}</div>
-              <div className="text-shadow text-sm leading-relaxed">{faq.a}</div>
+            <div key={i} className="border-b border-[#1F2937]/50 py-6">
+              <div className="text-base mb-2">{faq.q}</div>
+              <div className="ss text-[#9CA3AF] text-sm leading-relaxed">{faq.a}</div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="py-20 px-6 text-center">
-        <div className="max-w-lg mx-auto">
-          <h2 className="font-serif text-3xl md:text-4xl mb-4">Ready to let <span className="text-amber italic">nobody</span> write for you?</h2>
-          <p className="text-shadow text-sm mb-8">Join the beta. First 100 users get lifetime access at the beta price.</p>
-          <button onClick={() => document.getElementById("cta")?.scrollIntoView({ behavior: "smooth" })}
-            className="bg-amber text-void px-8 py-3 rounded-lg text-sm font-semibold hover:bg-amber/90 transition-colors">Start free {"→"}</button>
+      {/* Final CTA */}
+      <section className="relative z-10 py-24 px-6 text-center">
+        <div className="absolute inset-0 bg-gradient-to-t from-[#F59E0B]/5 to-transparent pointer-events-none" />
+        <div className="relative max-w-lg mx-auto">
+          <h2 className="text-3xl md:text-5xl mb-5">Ready to let <span className="text-[#F59E0B] italic">nobody</span><br />write for you?</h2>
+          <p className="ss text-[#9CA3AF] text-sm mb-8">Join the beta. First 100 users get lifetime access at the beta price.</p>
+          <button onClick={() => isLoggedIn ? router.push("/dashboard") : document.getElementById("cta")?.scrollIntoView({ behavior: "smooth" })}
+            className="ss bg-[#F59E0B] text-[#06080C] px-10 py-4 rounded-xl text-sm font-bold hover:bg-[#FBBF24] transition-all glow-card">
+            {isLoggedIn ? "Open Dashboard \u2192" : "Start free \u2192"}
+          </button>
         </div>
       </section>
 
-      <footer className="border-t border-border/50 py-8 px-6">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-sm"><span className="font-serif">nobod</span><span className="font-serif text-amber/40 italic">.ai</span><span className="text-shadow/40"> {"—"} by OPCORE Partners</span></div>
-          <div className="flex gap-6 text-xs text-shadow/40">
-            <a href="#" className="hover:text-shadow transition-colors">Privacy</a>
-            <a href="#" className="hover:text-shadow transition-colors">Terms</a>
-            <a href="#" className="hover:text-shadow transition-colors">Contact</a>
+      {/* Footer */}
+      <footer className="relative z-10 border-t border-[#1F2937]/30 py-10 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-8">
+            <div>
+              <div className="text-xl mb-2"><span>nobod</span><span className="text-[#F59E0B] italic">.ai</span></div>
+              <div className="ss text-xs text-[#6B7280] max-w-xs">The AI ghostwriter that learns your voice and posts on LinkedIn for you. Built in Z{"\u00FC"}rich by OPCORE Partners.</div>
+            </div>
+            <div className="ss flex gap-10 text-xs text-[#6B7280]">
+              <div className="space-y-2">
+                <div className="text-[#9CA3AF] font-medium mb-3">Product</div>
+                <a href="#how" className="block hover:text-[#E5E7EB] transition-colors no-underline">How it works</a>
+                <a href="#pricing" className="block hover:text-[#E5E7EB] transition-colors no-underline">Pricing</a>
+                <a href="#team" className="block hover:text-[#E5E7EB] transition-colors no-underline">Team</a>
+              </div>
+              <div className="space-y-2">
+                <div className="text-[#9CA3AF] font-medium mb-3">Legal</div>
+                <a href="#" className="block hover:text-[#E5E7EB] transition-colors no-underline">Privacy Policy</a>
+                <a href="#" className="block hover:text-[#E5E7EB] transition-colors no-underline">Terms of Service</a>
+                <a href="#" className="block hover:text-[#E5E7EB] transition-colors no-underline">Imprint</a>
+              </div>
+              <div className="space-y-2">
+                <div className="text-[#9CA3AF] font-medium mb-3">Connect</div>
+                <a href="#" className="block hover:text-[#E5E7EB] transition-colors no-underline">LinkedIn</a>
+                <a href="mailto:hello@nobod.ai" className="block hover:text-[#E5E7EB] transition-colors no-underline">hello@nobod.ai</a>
+              </div>
+            </div>
+          </div>
+          <div className="ss flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-[#1F2937]/30 text-xs text-[#4B5563]">
+            <span>{"\u00A9"} 2026 OPCORE Partners AG, Z{"\u00FC"}rich. All rights reserved.</span>
+            <span>Made with conviction. Written by nobody.</span>
           </div>
         </div>
       </footer>
