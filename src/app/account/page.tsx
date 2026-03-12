@@ -197,7 +197,7 @@ export default function Account() {
               <div className="text-sm">Delete Account</div>
               <div className="text-xs text-[#6B7280]">Permanently delete your account, voice profile, and all drafts.</div>
             </div>
-            <button className="text-xs text-red-400 border border-red-400/30 px-3 py-1.5 rounded-lg hover:bg-red-400/10 transition-colors">
+            <button onClick={async () => { if (window.confirm("Are you sure? This will permanently delete all your posts, voice profile, and account data. This cannot be undone.")) { await supabase.rpc("delete_user_data", { p_user_id: user.id }); await supabase.auth.signOut(); router.push("/"); } }} className="text-xs text-red-400 border border-red-400/30 px-3 py-1.5 rounded-lg hover:bg-red-400/10 transition-colors">
               Delete Account
             </button>
           </div>
