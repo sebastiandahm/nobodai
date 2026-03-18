@@ -121,9 +121,7 @@ export default function Account() {
             <div className="mt-4 p-4 bg-[#F59E0B]/5 border border-[#F59E0B]/20 rounded-xl">
               <div className="text-sm text-[#F59E0B] mb-1">Upgrade to Pro</div>
               <div className="text-xs text-[#9CA3AF] mb-3">Get daily posts, image generation, custom topics, and priority support.</div>
-              <button className="bg-[#F59E0B] text-[#06080C] px-4 py-2 rounded-lg text-xs font-semibold hover:bg-[#FBBF24] transition-colors">
-                Upgrade to Pro &mdash; {"\u20AC"}79/mo
-              </button>
+              <button onClick={async () => { const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan: "pro", userId: user.id, email: user.email }) }); const data = await res.json(); if (data.url) { window.location.href = data.url; } else { alert(data.error || "Checkout failed"); } }} className="bg-[#F59E0B] text-[#06080C] px-4 py-2 rounded-lg text-xs font-semibold hover:bg-[#FBBF24] transition-colors">                 Upgrade to Pro &mdash; &euro;79/mo               </button>
             </div>
           )}
         </div>
