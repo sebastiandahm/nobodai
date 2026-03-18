@@ -14,7 +14,7 @@ function LinkedInPreview({ text, name }: { text: string; name: string }) {
         </div>
         <div>
           <div className="text-sm font-medium text-[#E8E8E8]">{name || "Your Name"}</div>
-          <div className="text-xs text-[#8B8B8B]">Your headline • 1h • 🌐</div>
+          <div className="text-xs text-[#8B8B8B]">Your headline â¢ 1h â¢ ð</div>
         </div>
       </div>
       {/* Post Content */}
@@ -23,10 +23,10 @@ function LinkedInPreview({ text, name }: { text: string; name: string }) {
       </div>
       {/* LinkedIn Engagement Bar */}
       <div className="border-t border-[#2D2D2D] px-4 py-2 flex items-center gap-1">
-        <span className="text-xs">👍</span>
-        <span className="text-xs">💡</span>
+        <span className="text-xs">ð</span>
+        <span className="text-xs">ð¡</span>
         <span className="text-xs text-[#8B8B8B] ml-1">0</span>
-        <span className="text-xs text-[#8B8B8B] ml-auto">0 comments • 0 reposts</span>
+        <span className="text-xs text-[#8B8B8B] ml-auto">0 comments â¢ 0 reposts</span>
       </div>
     </div>
   );
@@ -35,7 +35,7 @@ function LinkedInPreview({ text, name }: { text: string; name: string }) {
 function EmptyState({ onGenerate, generating }: { onGenerate: () => void; generating: boolean }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="text-5xl mb-4">✍️</div>
+      <div className="text-5xl mb-4">âï¸</div>
       <h3 className="font-serif text-xl mb-2">Nobody has written yet.</h3>
       <p className="text-shadow text-sm mb-6 max-w-sm">
         Click the button below and nobody will generate 2 LinkedIn posts
@@ -52,7 +52,7 @@ function EmptyState({ onGenerate, generating }: { onGenerate: () => void; genera
             Nobody is writing...
           </span>
         ) : (
-          "Generate my first posts →"
+          "Generate my first posts â"
         )}
       </button>
     </div>
@@ -301,7 +301,7 @@ export default function Dashboard() {
                     {/* Topic Badge */}
                     {draft.source_topic && (
                       <div className="text-xs text-shadow mb-2 flex items-center gap-1.5">
-                        <span className="text-amber">📰</span>
+                        <span className="text-amber">ð°</span>
                         {draft.source_topic}
                       </div>
                     )}
@@ -335,6 +335,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                     ) : (
+                      {draft.image_url && <img src={draft.image_url} alt="Post image" className="w-full rounded-lg mb-3 max-h-48 object-cover" />}
                       <LinkedInPreview
                         text={draft.draft_text}
                         name={profile?.full_name || ""}
@@ -348,7 +349,7 @@ export default function Dashboard() {
                           onClick={() => updateDraft(draft.id, "approved")}
                           className="bg-amber text-void px-4 py-2 rounded-lg text-xs font-semibold hover:bg-amber/90 transition-colors flex items-center gap-1.5"
                         >
-                          ✅ Approve
+                          â Approve
                         </button>
                         <button
                           onClick={() => {
@@ -357,14 +358,16 @@ export default function Dashboard() {
                           }}
                           className="bg-card border border-border px-4 py-2 rounded-lg text-xs text-shadow hover:border-amber/30 transition-colors flex items-center gap-1.5"
                         >
-                          ✏️ Edit
+                          âï¸ Edit
                         </button>
                         <button
                           onClick={() => updateDraft(draft.id, "rejected")}
                           className="bg-card border border-border px-4 py-2 rounded-lg text-xs text-shadow hover:border-red-500/30 transition-colors flex items-center gap-1.5"
                         >
-                          ❌ Skip
+                          â Skip
                         </button>
+                        <button onClick={async () => { const res = await fetch("/api/generate-image", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ draftId: draft.id, userId: profile?.id, action: "generate-card" }) }); const data = await res.json(); if (data.url) { await loadData(); } else { alert(data.error || "Image generation failed"); } }} className="bg-card border border-border px-4 py-1.5 rounded-lg text-xs text-shadow hover:border-amber/30 transition-colors">🖼️ Generate Card</button>
+                        <label className="bg-card border border-border px-4 py-1.5 rounded-lg text-xs text-shadow hover:border-amber/30 transition-colors cursor-pointer"><input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const fd = new FormData(); fd.append("file", file); fd.append("userId", profile?.id || ""); fd.append("draftId", draft.id); const res = await fetch("/api/upload-image", { method: "POST", body: fd }); const data = await res.json(); if (data.url) { await loadData(); } else { alert(data.error || "Upload failed"); } }} />📎 Upload Image</label>
                       </div>
                     )}
                   </div>
@@ -395,7 +398,7 @@ export default function Dashboard() {
                       {draft.source_topic && (
                         <span>{draft.source_topic}</span>
                       )}
-                      <span>•</span>
+                      <span>â¢</span>
                       <span>
                         {new Date(draft.created_at).toLocaleDateString("de-DE", {
                           day: "numeric",
