@@ -1,9 +1,9 @@
 "use client";
- 
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
- 
+
 // === Types matching actual DB schema ===
 interface Profile {
   id: string;
@@ -12,7 +12,7 @@ interface Profile {
   email: string;
   plan: string;
 }
- 
+
 interface Draft {
   id: string;
   user_id: string;
@@ -31,38 +31,38 @@ interface Draft {
   hook_options: string[] | null;
   generation_metadata: any;
 }
- 
+
 // === Toast Component ===
 function Toast({ message, type, onClose }: { message: string; type: "success" | "error" | "info"; onClose: () => void }) {
   useEffect(function () {
     var t = setTimeout(onClose, 3000);
     return function () { clearTimeout(t); };
   }, []);
- 
+
   var bg = type === "success" ? "bg-green-500/10 border-green-500/20 text-green-400"
     : type === "error" ? "bg-red-500/10 border-red-500/20 text-red-400"
     : "bg-amber/10 border-amber/20 text-amber";
- 
+
   return (
     <div className={"fixed top-4 right-4 z-50 px-4 py-3 rounded-lg border text-sm font-medium animate-pulse " + bg}>
       {message}
     </div>
   );
 }
- 
+
 // === LinkedIn Preview Component ===
 function LinkedInPreview({ text, name, imageUrl, score }: { text: string; name: string; imageUrl?: string | null; score?: number | null }) {
   var initials = "?";
   if (name) {
     initials = name.split(" ").map(function (n) { return n[0] || ""; }).join("").slice(0, 2);
   }
- 
+
   var scoreBadge = null;
   if (score && score > 0) {
     var scoreClass = score >= 8 ? "bg-green-500/10 text-green-400" : score >= 6 ? "bg-amber/10 text-amber" : "bg-red-500/10 text-red-400";
     scoreBadge = <div className={"text-xs px-2 py-1 rounded-lg font-medium " + scoreClass}>{score}/10</div>;
   }
- 
+
   return (
     <div className="bg-[#1B1F23] border border-[#2D2D2D] rounded-xl overflow-hidden">
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
@@ -84,7 +84,7 @@ function LinkedInPreview({ text, name, imageUrl, score }: { text: string; name: 
     </div>
   );
 }
- 
+
 // === Empty State ===
 function EmptyState({ onGenerate, generating, genProgress }: { onGenerate: () => void; generating: boolean; genProgress?: string }) {
   return (
@@ -102,7 +102,7 @@ function EmptyState({ onGenerate, generating, genProgress }: { onGenerate: () =>
     </div>
   );
 }
- 
+
 // === Loading Skeleton ===
 function LoadingSkeleton() {
   return (
@@ -130,7 +130,7 @@ function LoadingSkeleton() {
     </div>
   );
 }
- 
+
 // ============================================================
 // MAIN DASHBOARD
 // ============================================================
@@ -150,11 +150,11 @@ export default function DashboardPage() {
   var [feedbackText, setFeedbackText] = useState("");
   var [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
   var [genProgress, setGenProgress] = useState("");
- 
+
   var showToast = function (message: string, type: "success" | "error" | "info") {
     setToast({ message: message, type: type });
   };
- 
+
   // === Keyboard shortcuts ===
   useEffect(function () {
     function handleKey(e: KeyboardEvent) {
@@ -162,10 +162,10 @@ export default function DashboardPage() {
       var tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       if (editingId || feedbackId) return;
- 
+
       var firstPending = drafts.find(function (d) { return d.status === "generated"; });
       if (!firstPending) return;
- 
+
       if (e.key === "a" && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         updateDraft(firstPending.id, "approved");
@@ -184,28 +184,28 @@ export default function DashboardPage() {
     window.addEventListener("keydown", handleKey);
     return function () { window.removeEventListener("keydown", handleKey); };
   });
- 
+
   // === Load user data ===
   useEffect(function () {
     supabase.auth.getUser().then(function (r) {
       if (!r.data.user) { router.push("/"); return; }
       var userId = r.data.user.id;
- 
+
       supabase.from("profiles").select("*").eq("id", userId).single().then(function (pRes) {
         if (pRes.data) setProfile(pRes.data as Profile);
       });
- 
+
       supabase.from("drafts").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(50).then(function (dRes) {
         if (dRes.data) setDrafts(dRes.data as Draft[]);
         setLoading(false);
       });
     });
   }, []);
- 
+
   // === Filter drafts ===
   var pendingDrafts = drafts.filter(function (d) { return d.status === "generated"; });
   var processedDrafts = drafts.filter(function (d) { return d.status !== "generated"; });
- 
+
   // === Stats ===
   var approvedCount = drafts.filter(function (d) { return d.status === "approved"; }).length;
   var avgScore = 0;
@@ -215,13 +215,13 @@ export default function DashboardPage() {
     for (var si = 0; si < scoredDrafts.length; si++) sum += (scoredDrafts[si].engagement_score || 0);
     avgScore = Math.round((sum / scoredDrafts.length) * 10) / 10;
   }
- 
+
   // === Generate new drafts ===
   var generateDrafts = async function () {
     if (!profile || generating) return;
     setGenerating(true);
     setGenProgress("Step 1/5: Analyzing your Voice DNA...");
- 
+
     // Simulate progress steps (API is a single call, we estimate timing)
     var progressSteps = [
       { msg: "Step 1/5: Analyzing your Voice DNA...", delay: 0 },
@@ -236,7 +236,7 @@ export default function DashboardPage() {
         timers.push(setTimeout(function () { setGenProgress(step.msg); }, step.delay));
       })(progressSteps[pi]);
     }
- 
+
     try {
       var res = await fetch("/api/generate", {
         method: "POST",
@@ -260,7 +260,7 @@ export default function DashboardPage() {
     setGenProgress("");
     setGenerating(false);
   };
- 
+
   // === Update draft status ===
   var updateDraft = async function (draftId: string, newStatus: string, extra?: any) {
     var updateData: any = { status: newStatus };
@@ -279,7 +279,7 @@ export default function DashboardPage() {
     if (newStatus === "approved") showToast("Post approved! Voice DNA learning...", "success");
     else if (newStatus === "rejected") showToast("Post skipped", "info");
   };
- 
+
   // === Copy to LinkedIn ===
   var handleCopy = function (text: string, draftId: string) {
     navigator.clipboard.writeText(text);
@@ -289,7 +289,7 @@ export default function DashboardPage() {
     // Open LinkedIn compose
     window.open("https://www.linkedin.com/feed/?shareActive=true", "_blank");
   };
- 
+
   // === Regenerate ===
   var handleRegenerate = async function (draftId: string, action: string, customFeedback?: string) {
     if (!profile || regenerating) return;
@@ -321,7 +321,7 @@ export default function DashboardPage() {
     setFeedbackId(null);
     setFeedbackText("");
   };
- 
+
   // === Generate image ===
   var handleGenerateImage = async function (draftId: string) {
     if (!profile) return;
@@ -344,7 +344,7 @@ export default function DashboardPage() {
       showToast("Image generation failed", "error");
     }
   };
- 
+
   // === Upload image ===
   var handleUploadImage = async function (draftId: string, file: File) {
     if (!profile) return;
@@ -367,7 +367,7 @@ export default function DashboardPage() {
       showToast("Upload failed", "error");
     }
   };
- 
+
   // === RENDER ===
   if (loading) {
     return (
@@ -381,11 +381,11 @@ export default function DashboardPage() {
       </div>
     );
   }
- 
+
   return (
     <div className="min-h-screen bg-void text-whisper">
       {toast && <Toast message={toast.message} type={toast.type} onClose={function () { setToast(null); }} />}
- 
+
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -401,7 +401,7 @@ export default function DashboardPage() {
             <a href="/account" className="bg-card border border-border px-3 py-2 rounded-lg text-xs text-shadow hover:text-whisper transition-colors">Account</a>
           </div>
         </div>
- 
+
         {/* Stats */}
         <div className="grid grid-cols-4 gap-2 mb-6">
           {[
@@ -418,7 +418,7 @@ export default function DashboardPage() {
             );
           })}
         </div>
- 
+
         {/* Tabs */}
         <div className="flex gap-1 mb-6 bg-midnight rounded-lg p-1 border border-border">
           <button onClick={function () { setActiveTab("pending"); }}
@@ -430,7 +430,7 @@ export default function DashboardPage() {
             History ({processedDrafts.length})
           </button>
         </div>
- 
+
         {/* PENDING TAB */}
         {activeTab === "pending" && (
           <div>
@@ -446,7 +446,7 @@ export default function DashboardPage() {
                   var isRegenerating = regenerating === draft.id;
                   var variations = draft.variations || [];
                   var showingVariation = showVariation === draft.id && variations.length > 0;
- 
+
                   return (
                     <div key={draft.id} className={isRegenerating ? "opacity-60 pointer-events-none" : ""}>
                       {/* Topic + Meta */}
@@ -463,7 +463,7 @@ export default function DashboardPage() {
                           )}
                         </div>
                       </div>
- 
+
                       {/* Editor mode */}
                       {editingId === draft.id ? (
                         <div className="bg-card border border-border rounded-xl p-4">
@@ -486,7 +486,7 @@ export default function DashboardPage() {
                           score={draft.engagement_score}
                         />
                       )}
- 
+
                       {/* Action buttons */}
                       {editingId !== draft.id && (
                         <div className="mt-3 space-y-2">
@@ -509,7 +509,7 @@ export default function DashboardPage() {
                               \u274C Skip
                             </button>
                           </div>
- 
+
                           {/* Image actions */}
                           <div className="flex gap-1.5 flex-wrap">
                             <span className="text-xs text-shadow/40 py-1.5">Image:</span>
@@ -523,7 +523,7 @@ export default function DashboardPage() {
                                 onChange={function (e) { var f = e.target.files?.[0]; if (f) handleUploadImage(draft.id, f); }} />
                             </label>
                           </div>
- 
+
                           {/* Refinement actions */}
                           <div className="flex gap-1.5 flex-wrap">
                             <span className="text-xs text-shadow/40 py-1.5">Refine:</span>
@@ -548,7 +548,7 @@ export default function DashboardPage() {
                               \u{1F4AC} Custom...
                             </button>
                           </div>
- 
+
                           {/* Custom feedback input */}
                           {feedbackId === draft.id && (
                             <div className="flex gap-2 mt-1">
@@ -569,7 +569,7 @@ export default function DashboardPage() {
             )}
           </div>
         )}
- 
+
         {/* HISTORY TAB */}
         {activeTab === "history" && (
           <div>
@@ -614,4 +614,3 @@ export default function DashboardPage() {
     </div>
   );
 }
- 
