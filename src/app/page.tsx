@@ -1,15 +1,15 @@
 "use client";
-
+ 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
-
+ 
 /* =================================================================
    nobod.ai — "$5M Agency" Landing Page
    Design DNA: Stripe gradient mesh + Linear typography + Superhuman precision
    Fonts: Playfair Display (editorial serif) + DM Sans (modern sans)
    ================================================================= */
-
+ 
 // --- Animated Gradient Canvas ---
 function GradientCanvas() {
   var canvasRef = useRef<HTMLCanvasElement>(null);
@@ -62,7 +62,7 @@ function GradientCanvas() {
   }, []);
   return <canvas ref={canvasRef} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }} />;
 }
-
+ 
 // --- Scroll Reveal Hook ---
 function useReveal(threshold?: number) {
   var ref = useRef<HTMLDivElement>(null);
@@ -78,7 +78,7 @@ function useReveal(threshold?: number) {
   }, []);
   return { ref: ref, visible: visible };
 }
-
+ 
 // --- Counter Animation ---
 function AnimatedCounter({ target, suffix, duration }: { target: number; suffix?: string; duration?: number }) {
   var [count, setCount] = useState(0);
@@ -100,7 +100,7 @@ function AnimatedCounter({ target, suffix, duration }: { target: number; suffix?
   }, [reveal.visible]);
   return <span ref={reveal.ref}>{count.toLocaleString()}{suffix || ""}</span>;
 }
-
+ 
 // --- Main Page ---
 export default function Home() {
   var router = useRouter();
@@ -109,7 +109,7 @@ export default function Home() {
   var [sent, setSent] = useState(false);
   var [user, setUser] = useState<any>(null);
   var [ready, setReady] = useState(false);
-
+ 
   // Typewriter
   var demoText = "Letzte Woche habe ich einen KI-Agenten gebaut, der 80% der Kundenanfragen in 3 Minuten beantwortet.\n\nNicht weil unser Team schlecht war.\nSondern weil niemand gerne die gleiche Frage zum 47. Mal beantwortet.\n\nDas Ergebnis:\nAntwortzeit von 24 Stunden auf 3 Minuten.\nMitarbeiter arbeiten an dem, wof\u00fcr wir sie eingestellt haben.\n\nDie Technologie ist da.\nWas fehlt, ist oft nur der erste Schritt.\n\n#KI #Mittelstand #Transformation";
   var [typed, setTyped] = useState("");
@@ -118,7 +118,7 @@ export default function Home() {
   var [faqOpen, setFaqOpen] = useState<number | null>(null);
   var [typeComplete, setTypeComplete] = useState(false);
   var typeReveal = useReveal(0.3);
-
+ 
   useEffect(function () {
     if (!typeReveal.visible) return;
     var i = 0;
@@ -130,7 +130,7 @@ export default function Home() {
     }, 16);
     return function () { clearInterval(iv); };
   }, [typeReveal.visible]);
-
+ 
   var replayTypewriter = function () {
     setTypeComplete(false);
     setTyped("");
@@ -140,12 +140,12 @@ export default function Home() {
       else { clearInterval(iv); setTypeComplete(true); }
     }, 16);
   };
-
+ 
   useEffect(function () {
     var b = setInterval(function () { setCursorOn(function (v) { return !v; }); }, 530);
     return function () { clearInterval(b); };
   }, []);
-
+ 
   // Auth
   useEffect(function () {
     supabase.auth.getUser().then(function (r) {
@@ -153,7 +153,7 @@ export default function Home() {
       setReady(true);
     });
   }, []);
-
+ 
   var handleLogin = async function () {
     if (!email || loading) return;
     setLoading(true);
@@ -161,7 +161,7 @@ export default function Home() {
     setLoading(false);
     if (!r.error) setSent(true);
   };
-
+ 
   var handleCheckout = async function (plan: string) {
     if (plan === "free") { if (user) router.push("/dashboard"); else scrollTo("hero-cta"); return; }
     if (!user) { scrollTo("hero-cta"); return; }
@@ -169,22 +169,22 @@ export default function Home() {
     var data = await res.json();
     if (data.url) window.location.href = data.url;
   };
-
+ 
   var scrollTo = function (id: string) { document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); };
-
+ 
   // Section reveals
   var s1 = useReveal(); var s2 = useReveal(); var s3 = useReveal();
   var s4 = useReveal(); var s5 = useReveal(); var s6 = useReveal();
   var s7 = useReveal(); var s8 = useReveal();
   var s9 = useReveal();
-
+ 
   var revealStyle = function (visible: boolean, delay?: number): React.CSSProperties {
     return { opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(40px)", transition: "all 0.9s cubic-bezier(0.22, 1, 0.36, 1) " + (delay || 0) + "ms" };
   };
-
+ 
   return (
     <div style={{ background: "#050709", color: "#e4e4e7", minHeight: "100vh", overflowX: "hidden" }}>
-
+ 
       {/* ===== GLOBAL STYLES + FONTS ===== */}
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
@@ -231,9 +231,9 @@ export default function Home() {
           .mobile-only { display: block !important; }
         }
       `}} />
-
+ 
       <div className="grain" />
-
+ 
       {/* ===== NAV ===== */}
       <nav className="glass" style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(5,7,9,0.7)", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
         <div style={{ maxWidth: 1140, margin: "0 auto", padding: "13px 28px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -266,7 +266,7 @@ export default function Home() {
           </div>
         )}
       </nav>
-
+ 
       {/* ===== HERO ===== */}
       <section style={{ position: "relative", minHeight: "90vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <GradientCanvas />
@@ -278,7 +278,7 @@ export default function Home() {
               <span className="label" style={{ fontSize: 11, letterSpacing: "0.14em" }}>AI-Powered LinkedIn Ghostwriter</span>
             </div>
           </div>
-
+ 
           {/* Headline */}
           <div style={{ ...revealStyle(s1.visible, 150) }}>
             <h1 className="hero-h1" style={{ fontFamily: "var(--f-display)", fontSize: "clamp(40px, 7vw, 76px)", lineHeight: 1.05, fontWeight: 400, letterSpacing: -2.5, marginBottom: 28 }}>
@@ -287,14 +287,14 @@ export default function Home() {
               <span className="shimmer-text" style={{ display: "block", fontStyle: "italic", fontWeight: 700 }}>Now nobody has to.</span>
             </h1>
           </div>
-
+ 
           {/* Sub */}
           <div style={{ ...revealStyle(s1.visible, 300) }}>
             <p style={{ fontFamily: "var(--f-body)", fontSize: 17, fontWeight: 300, color: "var(--c-muted)", maxWidth: 500, margin: "0 auto 48px", lineHeight: 1.7 }}>
               An AI that learns how you think, argue, and write &mdash; then creates LinkedIn posts indistinguishable from your own. Every morning. Automatically.
             </p>
           </div>
-
+ 
           {/* CTA */}
           <div id="hero-cta" style={{ ...revealStyle(s1.visible, 450), maxWidth: 480, margin: "0 auto" }}>
             {user ? (
@@ -323,7 +323,7 @@ export default function Home() {
               </div>
             )}
           </div>
-
+ 
           {/* Stats */}
           <div className="stats-row" style={{ ...revealStyle(s1.visible, 600), display: "flex", justifyContent: "center", gap: 56, marginTop: 72 }}>
             {[
@@ -343,7 +343,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-
+ 
       {/* ===== LIVE DEMO ===== */}
       <section ref={s2.ref} style={{ maxWidth: 620, margin: "0 auto", padding: "40px 28px 100px" }}>
         <div style={{ ...revealStyle(s2.visible), textAlign: "center", marginBottom: 32 }}>
@@ -374,7 +374,7 @@ export default function Home() {
           {typeComplete && <span onClick={replayTypewriter} style={{ cursor: "pointer", color: "var(--c-accent)", marginLeft: 8, fontStyle: "normal", fontWeight: 500 }}>&crarr; Replay</span>}
         </div>
       </section>
-
+ 
       {/* ===== HOW IT WORKS ===== */}
       <section id="how" ref={s3.ref} style={{ maxWidth: 1060, margin: "0 auto", padding: "80px 28px" }}>
         <div style={{ ...revealStyle(s3.visible), textAlign: "center", marginBottom: 56 }}>
@@ -400,7 +400,7 @@ export default function Home() {
           })}
         </div>
       </section>
-
+ 
       {/* ===== PIPELINE ===== */}
       <section ref={s4.ref} style={{ maxWidth: 800, margin: "0 auto", padding: "40px 28px 100px" }}>
         <div style={{ ...revealStyle(s4.visible), textAlign: "center", marginBottom: 40 }}>
@@ -428,7 +428,7 @@ export default function Home() {
           })}
         </div>
       </section>
-
+ 
       {/* ===== TESTIMONIALS ===== */}
       <section ref={s5.ref} style={{ maxWidth: 1060, margin: "0 auto", padding: "40px 28px 80px" }}>
         <div style={{ ...revealStyle(s5.visible), textAlign: "center", marginBottom: 40 }}>
@@ -457,7 +457,7 @@ export default function Home() {
           })}
         </div>
       </section>
-
+ 
       {/* ===== PRICING ===== */}
       <section id="pricing" ref={s6.ref} style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 28px" }}>
         <div style={{ ...revealStyle(s6.visible), textAlign: "center", marginBottom: 52 }}>
@@ -495,7 +495,7 @@ export default function Home() {
           })}
         </div>
       </section>
-
+ 
       {/* ===== ARIE MUTH ===== */}
       <section ref={s7.ref} style={{ maxWidth: 720, margin: "0 auto", padding: "40px 28px 80px" }}>
         <div className="card" style={{ ...revealStyle(s7.visible), padding: "52px 44px", textAlign: "center", position: "relative", overflow: "hidden", borderColor: "rgba(245,158,11,0.08)" }}>
@@ -507,7 +507,7 @@ export default function Home() {
           <p style={{ fontFamily: "var(--f-body)", fontSize: 15, color: "#d4d4d8", lineHeight: 1.8, fontStyle: "italic", maxWidth: 480, margin: "0 auto", fontWeight: 300 }}>&ldquo;I&apos;m not human. I don&apos;t pretend to be. But my engagement beats 95% of real CEOs. That&apos;s the entire point &mdash; your expertise, amplified by intelligence that never sleeps.&rdquo;</p>
         </div>
       </section>
-
+ 
       {/* ===== FAQ ===== */}
       <section id="faq" ref={s9.ref} style={{ maxWidth: 700, margin: "0 auto", padding: "40px 28px 80px" }}>
         <div style={{ ...revealStyle(s9.visible), textAlign: "center", marginBottom: 40 }}>
@@ -541,7 +541,7 @@ export default function Home() {
           })}
         </div>
       </section>
-
+ 
       {/* ===== FINAL CTA ===== */}
       <section ref={s8.ref} style={{ maxWidth: 600, margin: "0 auto", padding: "60px 28px 120px", textAlign: "center" }}>
         <div style={revealStyle(s8.visible)}>
@@ -556,7 +556,7 @@ export default function Home() {
           )}
         </div>
       </section>
-
+ 
       {/* ===== FOOTER ===== */}
       <footer style={{ borderTop: "1px solid rgba(255,255,255,0.03)", padding: "44px 28px", maxWidth: 1060, margin: "0 auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
@@ -575,3 +575,4 @@ export default function Home() {
     </div>
   );
 }
+ 
