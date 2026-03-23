@@ -50,7 +50,8 @@ async function structureIntoSlides(postText: string, authorName: string): Promis
     "- Vorletzte Slide: Key Takeaway oder starkes Statement\n" +
     "- Letzte Slide: CTA mit Follow-Aufforderung\n" +
     "- Jede Slide: max 12 Woerter headline, max 25 Woerter body\n" +
-    "- Body darf auch leer sein wenn die headline allein stark genug ist\n\n" +
+    "- Body darf auch leer sein wenn die headline allein stark genug ist\n" +
+    "- WICHTIG: Verwende KEINE Umlaute (ae statt ä, oe statt ö, ue statt ü, ss statt ß). Nur ASCII-Zeichen!\n\n" +
     'Antworte EXAKT in diesem JSON-Format:\n' +
     '{"slides": [{"type": "hook", "headline": "...", "body": "..."}, {"type": "content", "headline": "...", "body": "..."}]}\n\n' +
     "Typen: hook, content, stat, quote, cta\n" +
@@ -66,8 +67,8 @@ async function structureIntoSlides(postText: string, authorName: string): Promis
     for (var i = 0; i < parsed.slides.length; i++) {
       slides.push({
         type: parsed.slides[i].type || "content",
-        headline: parsed.slides[i].headline || "",
-        body: parsed.slides[i].body || "",
+        headline: sanitizeText(parsed.slides[i].headline || ""),
+        body: sanitizeText(parsed.slides[i].body || ""),
         slideNumber: i + 1,
         totalSlides: total,
       });
@@ -77,9 +78,9 @@ async function structureIntoSlides(postText: string, authorName: string): Promis
     var lines = postText.split("\n").filter(function (l: string) { return l.trim().length > 0; });
     var fallbackSlides: SlideData[] = [];
     var total2 = Math.min(lines.length + 1, 8);
-    fallbackSlides.push({ type: "hook", headline: lines[0] || "Key Insight", body: "", slideNumber: 1, totalSlides: total2 });
+    fallbackSlides.push({ type: "hook", headline: sanitizeText(lines[0] || "Key Insight"), body: "", slideNumber: 1, totalSlides: total2 });
     for (var j = 1; j < Math.min(lines.length, total2 - 1); j++) {
-      fallbackSlides.push({ type: "content", headline: lines[j].substring(0, 80), body: "", slideNumber: j + 1, totalSlides: total2 });
+      fallbackSlides.push({ type: "content", headline: sanitizeText(lines[j].substring(0, 80)), body: "", slideNumber: j + 1, totalSlides: total2 });
     }
     fallbackSlides.push({ type: "cta", headline: "Follow for more", body: authorName, slideNumber: total2, totalSlides: total2 });
     return fallbackSlides;
@@ -91,6 +92,20 @@ function hexToRgb(hex: string) {
   var g = parseInt(hex.substring(3, 5), 16) / 255;
   var b = parseInt(hex.substring(5, 7), 16) / 255;
   return rgb(r, g, b);
+}
+
+function sanitizeText(text: string): string {
+  return text
+    .replace(/\u00e4/g, "ae").replace(/\u00f6/g, "oe").replace(/\u00fc/g, "ue").replace(/\u00df/g, "ss")
+    .replace(/\u00c4/g, "Ae").replace(/\u00d6/g, "Oe").replace(/\u00dc/g, "Ue")
+    .replace(/\u2014/g, " - ").replace(/\u2013/g, "-").replace(/\u2026/g, "...")
+    .replace(/\u201e/g, "\"").replace(/\u201c/g, "\"").replace(/\u201d/g, "\"")
+    .replace(/\u201a/g, "'").replace(/\u2018/g, "'").replace(/\u2019/g, "'")
+    .replace(/\u00ab/g, "\"").replace(/\u00bb/g, "\"")
+    .replace(/\u2192/g, "->").replace(/\u2190/g, "<-")
+    .replace(/\u2022/g, "-").replace(/\u00b7/g, "-")
+    .replace(/\u20ac/g, "EUR").replace(/\u00a9/g, "(c)")
+    .replace(/[^\x20-\x7E\u00c0-\u00ff]/g, "");
 }
 
 function wrapText(text: string, maxCharsPerLine: number): string[] {
@@ -134,6 +149,7 @@ export async function POST(request: NextRequest) {
       authorName = profileRes.data[0].full_name || "Author";
     }
     var initials = authorName.split(" ").map(function (n: string) { return n[0] || ""; }).join("").slice(0, 2);
+    authorName = sanitizeText(authorName);
 
     // Step 1: Structure into slides
     var slides = await structureIntoSlides(draft.draft_text, authorName);
