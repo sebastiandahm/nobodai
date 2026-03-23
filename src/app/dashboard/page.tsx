@@ -51,7 +51,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 }
 
 // === LinkedIn Preview Component ===
-function LinkedInPreview({ text, name, imageUrl, score }: { text: string; name: string; imageUrl?: string | null; score?: number | null }) {
+function LinkedInPreview({ text, name, imageUrl, imageSource, score }: { text: string; name: string; imageUrl?: string | null; imageSource?: string | null; score?: number | null }) {
   var initials = "?";
   if (name) {
     initials = name.split(" ").map(function (n) { return n[0] || ""; }).join("").slice(0, 2);
@@ -74,7 +74,19 @@ function LinkedInPreview({ text, name, imageUrl, score }: { text: string; name: 
         {scoreBadge}
       </div>
       <div className="px-4 pb-4">
-        {imageUrl && <img src={imageUrl} alt="Post image" className="w-full rounded-lg mb-3 max-h-48 object-cover" />}
+        {imageUrl && imageSource === "carousel" ? (
+          <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block mb-3 bg-[#1a1505] border border-amber/20 rounded-lg p-4 hover:border-amber/40 transition-colors">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📑</span>
+              <div>
+                <div className="text-sm font-medium text-amber">LinkedIn Carousel PDF</div>
+                <div className="text-xs text-[#8B8B8B]">Click to download &bull; Upload as Document Post</div>
+              </div>
+            </div>
+          </a>
+        ) : imageUrl ? (
+          <img src={imageUrl} alt="Post image" className="w-full rounded-lg mb-3 max-h-48 object-cover" />
+        ) : null}
         <div className="text-sm text-[#E8E8E8] leading-relaxed whitespace-pre-wrap">{text}</div>
       </div>
       <div className="border-t border-[#2D2D2D] px-4 py-2 flex items-center text-xs text-[#8B8B8B]">
@@ -345,6 +357,31 @@ export default function DashboardPage() {
     }
   };
 
+  // === Generate carousel ===
+  var handleGenerateCarousel = async function (draftId: string) {
+    if (!profile) return;
+    showToast("Generating carousel (10-15s)...", "info");
+    try {
+      var res = await fetch("/api/generate-carousel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ draftId: draftId, userId: profile.id }),
+      });
+      var data = await res.json();
+      if (data.success && data.carouselUrl) {
+        setDrafts(drafts.map(function (d) {
+          if (d.id === draftId) return Object.assign({}, d, { image_url: data.carouselUrl, image_source: "carousel" });
+          return d;
+        }));
+        showToast(data.slideCount + "-slide carousel ready!", "success");
+      } else {
+        showToast(data.error || "Carousel failed", "error");
+      }
+    } catch (err) {
+      showToast("Carousel generation failed", "error");
+    }
+  };
+
   // === Upload image ===
   var handleUploadImage = async function (draftId: string, file: File) {
     if (!profile) return;
@@ -483,6 +520,7 @@ export default function DashboardPage() {
                           text={showingVariation ? (typeof variations[0] === "string" ? variations[0] : String(variations[0])) : draft.draft_text}
                           name={profile?.full_name || ""}
                           imageUrl={draft.image_url}
+                          imageSource={draft.image_source}
                           score={draft.engagement_score}
                         />
                       )}
@@ -515,7 +553,11 @@ export default function DashboardPage() {
                             <span className="text-xs text-shadow/40 py-1.5">Image:</span>
                             <button onClick={function () { handleGenerateImage(draft.id); }}
                               className="bg-midnight border border-border/50 px-2.5 py-1.5 rounded-md text-xs text-shadow hover:border-amber/20 hover:text-whisper transition-colors">
-                              🎨 Generate Card
+                              🎨 Card
+                            </button>
+                            <button onClick={function () { handleGenerateCarousel(draft.id); }}
+                              className="bg-midnight border border-border/50 px-2.5 py-1.5 rounded-md text-xs text-shadow hover:border-amber/20 hover:text-whisper transition-colors">
+                              📑 Carousel
                             </button>
                             <label className="bg-midnight border border-border/50 px-2.5 py-1.5 rounded-md text-xs text-shadow hover:border-amber/20 hover:text-whisper transition-colors cursor-pointer">
                               📷 Upload
