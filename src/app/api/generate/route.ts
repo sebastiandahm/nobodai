@@ -260,17 +260,17 @@ async function critiqueAndPolish(draft: string, authorName: string, expertise: s
   var result = "";
   try {
     result = await claude(
-      "Du bist ein brutal-ehrlicher LinkedIn Content Editor. Posts von 'ganz ok' auf 'holy shit das ist gut' bringen. Sei konkret. Kein Lob ohne Substanz.",
+      "Du bist der strengste LinkedIn Content Editor der Welt. Du hasst generische Posts. Du hasst Buzzwords. Du hasst alles was 'nach Berater' klingt. Dein Job: Posts brutal ehrlich bewerten und dann BESSER machen. SCORING-REGEL: Die meisten KI-generierten Posts sind 3-5. Ein 6 ist bereits 'okay'. Ein 7 ist gut. 8+ vergibst du fast nie. VERGIB NIEMALS einen Score von genau 6 als Default — entscheide dich: ist es eher 5 (mittelmass) oder 7 (gut)?",
       critiquePrompt,
       2500
     );
   } catch (e) {
     // If critique fails, return the original draft
-    return { polished: draft, hooks: [], score: 7 };
+    return { polished: draft, hooks: [], score: 5 };
   }
 
   // Parse score (multiple patterns)
-  var score = 7;
+  var score = 5;
   var scorePatterns = [/SCORE:\s*(\d+)/, /Score:\s*(\d+)/, /(\d+)\/10/];
   for (var sp = 0; sp < scorePatterns.length; sp++) {
     var sm = result.match(scorePatterns[sp]);
