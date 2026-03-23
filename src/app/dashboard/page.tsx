@@ -458,7 +458,7 @@ export default function DashboardPage() {
                           {variations.length > 0 && (
                             <button onClick={function () { setShowVariation(showingVariation ? null : draft.id); }}
                               className="text-xs text-amber/60 hover:text-amber transition-colors">
-                              {showingVariation ? "\u2190 Original" : "Variation \u2192"}
+                              {showingVariation ? "← Original" : "Variation →"}
                             </button>
                           )}
                         </div>
@@ -494,19 +494,19 @@ export default function DashboardPage() {
                           <div className="flex gap-2 flex-wrap">
                             <button onClick={function () { handleCopy(draft.draft_text, draft.id); }}
                               className="bg-[#0A66C2] text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-[#004182] transition-colors">
-                              {copied === draft.id ? "\u2713 Copied!" : "\u{1F4CB} Copy to LinkedIn"}
+                              {copied === draft.id ? "✓ Copied!" : "📋 Copy to LinkedIn"}
                             </button>
                             <button onClick={function () { updateDraft(draft.id, "approved"); }}
                               className="bg-amber text-void px-4 py-2 rounded-lg text-xs font-semibold hover:bg-amber/90 transition-colors">
-                              \u2705 Approve
+                              ✅ Approve
                             </button>
                             <button onClick={function () { setEditingId(draft.id); setEditText(draft.draft_text); }}
                               className="bg-card border border-border px-3 py-2 rounded-lg text-xs text-shadow hover:border-amber/30 transition-colors">
-                              \u270F\uFE0F Edit
+                              ✏️ Edit
                             </button>
                             <button onClick={function () { updateDraft(draft.id, "rejected"); }}
                               className="bg-card border border-border px-3 py-2 rounded-lg text-xs text-shadow hover:border-red-500/30 transition-colors">
-                              \u274C Skip
+                              ❌ Skip
                             </button>
                           </div>
 
@@ -515,10 +515,10 @@ export default function DashboardPage() {
                             <span className="text-xs text-shadow/40 py-1.5">Image:</span>
                             <button onClick={function () { handleGenerateImage(draft.id); }}
                               className="bg-midnight border border-border/50 px-2.5 py-1.5 rounded-md text-xs text-shadow hover:border-amber/20 hover:text-whisper transition-colors">
-                              \u{1F3A8} Generate Card
+                              🎨 Generate Card
                             </button>
                             <label className="bg-midnight border border-border/50 px-2.5 py-1.5 rounded-md text-xs text-shadow hover:border-amber/20 hover:text-whisper transition-colors cursor-pointer">
-                              \u{1F4F7} Upload
+                              📷 Upload
                               <input type="file" accept="image/*" className="hidden"
                                 onChange={function (e) { var f = e.target.files?.[0]; if (f) handleUploadImage(draft.id, f); }} />
                             </label>
@@ -528,11 +528,11 @@ export default function DashboardPage() {
                           <div className="flex gap-1.5 flex-wrap">
                             <span className="text-xs text-shadow/40 py-1.5">Refine:</span>
                             {[
-                              { action: "more_provocative", label: "\u{1F525} Bolder" },
-                              { action: "more_personal", label: "\u{1F4AC} Personal" },
-                              { action: "shorter", label: "\u2702\uFE0F Shorter" },
-                              { action: "variation", label: "\u{1F500} New angle" },
-                              { action: "swap_hook", label: "\u{1F3A3} New hook" },
+                              { action: "more_provocative", label: "🔥 Bolder" },
+                              { action: "more_personal", label: "💬 Personal" },
+                              { action: "shorter", label: "✂️ Shorter" },
+                              { action: "variation", label: "🔀 New angle" },
+                              { action: "swap_hook", label: "🎣 New hook" },
                             ].map(function (btn) {
                               return (
                                 <button key={btn.action}
@@ -545,7 +545,7 @@ export default function DashboardPage() {
                             })}
                             <button onClick={function () { setFeedbackId(feedbackId === draft.id ? null : draft.id); }}
                               className="bg-midnight border border-border/50 px-2.5 py-1.5 rounded-md text-xs text-shadow hover:border-amber/20 hover:text-whisper transition-colors">
-                              \u{1F4AC} Custom...
+                              💬 Custom...
                             </button>
                           </div>
 
@@ -600,7 +600,7 @@ export default function DashboardPage() {
                       {draft.status === "approved" && (
                         <button onClick={function () { handleCopy(draft.revised_text || draft.draft_text, draft.id); }}
                           className="mt-2 text-xs text-amber/60 hover:text-amber transition-colors">
-                          {copied === draft.id ? "\u2713 Copied" : "Copy again"}
+                          {copied === draft.id ? "✓ Copied" : "Copy again"}
                         </button>
                       )}
                     </div>
