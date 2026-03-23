@@ -374,7 +374,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-void text-whisper">
         <div className="max-w-2xl mx-auto px-4 py-12">
           <div className="flex items-center justify-between mb-8">
-            <div className="font-serif text-lg"><span className="text-shadow">nobod</span><span className="text-amber italic">.ai</span></div>
+            <a href="/" className="font-serif text-lg" style={{textDecoration:"none"}}><span className="text-shadow">nobod</span><span className="text-amber italic">.ai</span></a>
           </div>
           <LoadingSkeleton />
         </div>
@@ -390,7 +390,7 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <div className="font-serif text-lg"><span className="text-shadow">nobod</span><span className="text-amber italic">.ai</span></div>
+            <a href="/" className="font-serif text-lg" style={{textDecoration:"none"}}><span className="text-shadow">nobod</span><span className="text-amber italic">.ai</span></a>
             <div className="text-xs text-shadow mt-0.5">Welcome, {profile?.full_name || "there"}</div>
           </div>
           <div className="flex items-center gap-2">
