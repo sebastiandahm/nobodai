@@ -482,7 +482,7 @@ export default function Home() {
                 </div>
                 <div style={{ marginBottom: 26 }}>
                   {p.features.map(function (f) {
-                    return <div key={f} style={{ fontFamily: "var(--f-body)", fontSize: 13, color: "var(--c-muted)", marginBottom: 10, paddingLeft: 18, position: "relative", fontWeight: 300, lineHeight: 1.4 }}><span style={{ position: "absolute", left: 0, color: "var(--c-accent)", fontSize: 13 }}>&check;</span>{f}</div>;
+                    return <div key={f} style={{ fontFamily: "var(--f-body)", fontSize: 13, color: "var(--c-muted)", marginBottom: 10, paddingLeft: 18, position: "relative", fontWeight: 300, lineHeight: 1.4 }}><span style={{ position: "absolute", left: 0, color: "var(--c-accent)", fontSize: 13 }}>✓</span>{f}</div>;
                   })}
                 </div>
                 <button onClick={function () { handleCheckout(p.plan); }}
