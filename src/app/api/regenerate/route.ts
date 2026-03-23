@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
- 
+
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
- 
+
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "",
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
   );
 }
- 
+
 async function claude(system: string, user: string, maxTokens?: number): Promise<string> {
   var res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -40,35 +40,35 @@ async function claude(system: string, user: string, maxTokens?: number): Promise
   }
   return text.trim();
 }
- 
+
 // Build a rich system prompt from voice profile (same quality as generate route)
 function buildSystemPrompt(voice: any, profile: any): string {
   var base = "Du bist " + (profile?.full_name || "der Nutzer") + ". Du schreibst LinkedIn-Posts in der Ich-Perspektive.";
- 
+
   // If we have Voice DNA, use it (highest quality)
   if (voice.voice_dna) {
     base += "\n\n=== DEIN STIMMPROFIL (Voice DNA) ===\n" + voice.voice_dna;
   }
- 
+
   // Add tone context
   var f = voice.tone_formality || 0.5;
   var h = voice.tone_humor || 0.3;
   var p = voice.tone_provocation || 0.5;
- 
+
   var tone = "\n\n=== DEIN TON ===\n";
   if (f >= 0.7) tone += "Serioes und kompetent. ";
   else if (f >= 0.4) tone += "Professionell aber menschlich. ";
   else tone += "Locker und direkt. ";
- 
+
   if (h >= 0.6) tone += "Humor ist willkommen. ";
   if (p >= 0.6) tone += "Polarisierende Meinungen sind OK. ";
- 
+
   base += tone;
- 
+
   if (voice.custom_instructions) {
     base += "\n\n=== SPEZIAL-WUENSCHE ===\n" + voice.custom_instructions;
   }
- 
+
   base += "\n\n=== REGELN ===";
   base += "\n- Schreibe NUR den Post-Text, keine Erklaerungen oder Meta-Kommentare";
   base += "\n- Behalte den gleichen Ton und Stil wie das Original";
@@ -76,10 +76,10 @@ function buildSystemPrompt(voice: any, profile: any): string {
   base += "\n- Variiere Satzlaengen bewusst";
   base += "\n- Keine generischen Floskeln ('In der heutigen Zeit', 'Lassen Sie mich teilen')";
   base += "\n- Sprache: " + (voice.language === "en" ? "English" : "Deutsch");
- 
+
   return base;
 }
- 
+
 export async function POST(request: NextRequest) {
   try {
     var supabase = getSupabase();
@@ -88,23 +88,23 @@ export async function POST(request: NextRequest) {
     var userId = json.userId;
     var action = json.action || "refine";
     var feedback = json.feedback;
- 
+
     if (!draftId || !userId) {
       return NextResponse.json({ error: "Missing draftId or userId" }, { status: 400 });
     }
- 
+
     // === Load draft via RPC (bypasses RLS) ===
     var draftRes = await supabase.rpc("get_full_draft", { p_draft_id: draftId });
     if (draftRes.error || !draftRes.data || draftRes.data.length === 0) {
       return NextResponse.json({ error: "Draft not found" }, { status: 404 });
     }
     var draft = draftRes.data[0];
- 
+
     // === Security: verify draft belongs to this user ===
     if (draft.user_id !== userId) {
       return NextResponse.json({ error: "Unauthorized: draft does not belong to user" }, { status: 403 });
     }
- 
+
     // === Load full voice profile ===
     var voice: any = null;
     var vpRes = await supabase.rpc("get_full_voice_profile", { p_user_id: userId });
@@ -116,23 +116,23 @@ export async function POST(request: NextRequest) {
         voice = basicVpRes.data[0];
       }
     }
- 
+
     if (!voice) {
       return NextResponse.json({ error: "No voice profile found" }, { status: 404 });
     }
- 
+
     // === Load profile via RPC ===
     var profile: any = { full_name: "", company: "" };
     var profileRes = await supabase.rpc("get_profile_by_id", { p_user_id: userId });
     if (profileRes.data && profileRes.data.length > 0) {
       profile = profileRes.data[0];
     }
- 
+
     // Build rich system prompt with Voice DNA
     var systemPrompt = buildSystemPrompt(voice, profile);
     var currentText = draft.draft_text;
     var newText = "";
- 
+
     // === EXECUTE ACTION ===
     if (action === "swap_hook") {
       // Intelligent hook swap using stored alternatives
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       try {
         hooks = typeof draft.hook_options === "string" ? JSON.parse(draft.hook_options) : (draft.hook_options || []);
       } catch (e) { hooks = []; }
- 
+
       if (hooks.length === 0) {
         // No stored hooks — generate a new one
         newText = await claude(
@@ -163,10 +163,10 @@ export async function POST(request: NextRequest) {
         hooks.shift();
         await supabase.rpc("update_draft_hooks", {
           p_draft_id: draftId,
-          p_hook_options: JSON.stringify(hooks)
+          p_hook_options: hooks
         });
       }
- 
+
     } else if (action === "shorter") {
       newText = await claude(
         systemPrompt,
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
         "- Jedes Wort muss tragen\n" +
         "- Hashtags bleiben\n\nOriginal:\n" + currentText
       );
- 
+
     } else if (action === "more_provocative") {
       newText = await claude(
         systemPrompt,
@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
         "- Nicht krawall-maessig, aber klar polarisierend\n" +
         "- Konkreter: nenne was du kritisierst beim Namen\n\nOriginal:\n" + currentText
       );
- 
+
     } else if (action === "more_personal") {
       newText = await claude(
         systemPrompt,
@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
         "- Gleiche Laenge, gleicher Ton\n" +
         "- Kein 'Ich moechte heute mit euch teilen' — direkt rein\n\nOriginal:\n" + currentText
       );
- 
+
     } else if (action === "variation") {
       newText = await claude(
         systemPrompt,
@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
         "- Anderer Hook\n- Andere Struktur (wenn Original Story war, jetzt Framework. Wenn Framework, jetzt Beobachtung.)\n" +
         "- Anderer Blickwinkel\n- Gleicher Autor, gleicher Ton, gleiche Laenge\n\nOriginal:\n" + currentText.substring(0, 600)
       );
- 
+
     } else if (action === "custom" && feedback) {
       newText = await claude(
         systemPrompt,
@@ -216,7 +216,7 @@ export async function POST(request: NextRequest) {
         "ORIGINAL POST:\n" + currentText + "\n\n" +
         "Setze das Feedback praezise um. Behalte den Ton. Schreibe den kompletten Post."
       );
- 
+
     } else {
       // Default: general refinement
       newText = await claude(
@@ -228,34 +228,34 @@ export async function POST(request: NextRequest) {
         "- Gleiche Laenge, gleicher Ton\n\nOriginal:\n" + currentText
       );
     }
- 
+
     // Validate the output
     if (!newText || newText.trim().length < 30) {
       return NextResponse.json({ error: "Regeneration produced empty result, please try again" }, { status: 500 });
     }
- 
+
     // === Update draft via RPC (bypasses RLS) ===
     await supabase.rpc("update_draft_content", {
       p_draft_id: draftId,
       p_draft_text: newText,
       p_status: "generated",
-      p_generation_metadata: JSON.stringify({
+      p_generation_metadata: {
         regenerated: true,
         action: action,
         feedback: feedback || null,
         previous_length: currentText.length,
         new_length: newText.length,
         regenerated_at: new Date().toISOString()
-      })
+      }
     });
- 
+
     // === Track regeneration for product analytics ===
     await supabase.rpc("track_regeneration", {
       p_draft_id: draftId,
       p_action: action,
       p_feedback: feedback || null
     });
- 
+
     return NextResponse.json({
       success: true,
       action: action,
