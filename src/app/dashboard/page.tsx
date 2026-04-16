@@ -162,6 +162,8 @@ export default function DashboardPage() {
   var [feedbackText, setFeedbackText] = useState("");
   var [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
   var [genProgress, setGenProgress] = useState("");
+  var [visualMenuId, setVisualMenuId] = useState<string | null>(null);
+  var [visualBusyId, setVisualBusyId] = useState<string | null>(null);
 
   var showToast = function (message: string, type: "success" | "error" | "info") {
     setToast({ message: message, type: type });
@@ -405,6 +407,65 @@ export default function DashboardPage() {
     }
   };
 
+  // === Generate visual (fal.ai multi-mode) ===
+  var VISUAL_MODES: { value: "quote" | "scene" | "avatar" | "infographic"; label: string; hint: string }[] = [
+    { value: "quote",       label: "Quote Card",   hint: "Ideogram - text-heavy" },
+    { value: "scene",       label: "Scene",         hint: "Flux Pro - photoreal" },
+    { value: "avatar",      label: "Avatar Scene", hint: "Flux Pro - portrait" },
+    { value: "infographic", label: "Infographic",   hint: "Ideogram - diagram" },
+  ];
+
+  var handleGenerateVisual = async function (draftId: string, mode: string) {
+    if (!profile) return;
+    setVisualMenuId(null);
+    setVisualBusyId(draftId);
+    showToast("Generating " + mode + " (10-30s)...", "info");
+    try {
+      var res = await fetch("/api/generate-visual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ draftId: draftId, userId: profile.id, mode: mode }),
+      });
+      var data = await res.json();
+      if (res.status === 503) {
+        showToast("Image generation not configured. FAL_KEY missing in env.", "error");
+      } else if (res.status === 429) {
+        showToast(data.error || "Rate limited. Wait a moment.", "error");
+      } else if (data.success && data.imageUrl) {
+        setDrafts(drafts.map(function (d) {
+          if (d.id === draftId) return Object.assign({}, d, { image_url: data.imageUrl, image_source: "ai_visual_" + mode });
+          return d;
+        }));
+        showToast(mode + " ready", "success");
+      } else {
+        showToast(data.error || "Visual generation failed", "error");
+      }
+    } catch (err: any) {
+      showToast("Visual error: " + (err?.message || "unknown"), "error");
+    }
+    setVisualBusyId(null);
+  };
+
+  var handleRemoveImage = async function (draftId: string) {
+    if (!profile) return;
+    try {
+      var res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ draftId: draftId, userId: profile.id, action: "remove" }),
+      });
+      if (res.ok) {
+        setDrafts(drafts.map(function (d) {
+          if (d.id === draftId) return Object.assign({}, d, { image_url: null, image_source: null });
+          return d;
+        }));
+        showToast("Image removed", "success");
+      }
+    } catch (err) {
+      showToast("Remove failed", "error");
+    }
+  };
+
   // === RENDER ===
   if (loading) {
     return (
@@ -549,12 +610,33 @@ export default function DashboardPage() {
                           </div>
 
                           {/* Image actions */}
-                          <div className="flex gap-1.5 flex-wrap">
+                          <div className="flex gap-1.5 flex-wrap items-center relative">
                             <span className="text-xs text-shadow/40 py-1.5">Image:</span>
                             <button onClick={function () { handleGenerateImage(draft.id); }}
                               className="bg-midnight border border-border/50 px-2.5 py-1.5 rounded-md text-xs text-shadow hover:border-amber/20 hover:text-whisper transition-colors">
                               🎨 Card
                             </button>
+                            <div className="relative">
+                              <button onClick={function () { setVisualMenuId(visualMenuId === draft.id ? null : draft.id); }}
+                                disabled={visualBusyId === draft.id}
+                                className="bg-midnight border border-border/50 px-2.5 py-1.5 rounded-md text-xs text-shadow hover:border-amber/20 hover:text-whisper transition-colors disabled:opacity-50">
+                                {visualBusyId === draft.id ? "⏳ Generating..." : "✨ AI Visual ▾"}
+                              </button>
+                              {visualMenuId === draft.id && (
+                                <div className="absolute left-0 top-full mt-1 z-20 bg-card border border-border rounded-lg shadow-xl min-w-[200px] overflow-hidden">
+                                  {VISUAL_MODES.map(function (m) {
+                                    return (
+                                      <button key={m.value}
+                                        onClick={function () { handleGenerateVisual(draft.id, m.value); }}
+                                        className="w-full text-left px-3 py-2 text-xs hover:bg-midnight transition-colors block border-b border-border/50 last:border-b-0">
+                                        <div className="text-whisper font-medium">{m.label}</div>
+                                        <div className="text-shadow/50 text-[10px] mt-0.5">{m.hint}</div>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
                             <button onClick={function () { handleGenerateCarousel(draft.id); }}
                               className="bg-midnight border border-border/50 px-2.5 py-1.5 rounded-md text-xs text-shadow hover:border-amber/20 hover:text-whisper transition-colors">
                               📑 Carousel
@@ -564,6 +646,19 @@ export default function DashboardPage() {
                               <input type="file" accept="image/*" className="hidden"
                                 onChange={function (e) { var f = e.target.files?.[0]; if (f) handleUploadImage(draft.id, f); }} />
                             </label>
+                            {draft.image_url && (draft.image_source || "").indexOf("ai_visual_") === 0 && (
+                              <>
+                                <button onClick={function () { var mode = (draft.image_source || "").replace("ai_visual_", "") || "scene"; handleGenerateVisual(draft.id, mode); }}
+                                  disabled={visualBusyId === draft.id}
+                                  className="bg-midnight border border-amber/30 text-amber px-2.5 py-1.5 rounded-md text-xs hover:bg-amber/10 transition-colors disabled:opacity-50">
+                                  ↻ Regenerate
+                                </button>
+                                <button onClick={function () { handleRemoveImage(draft.id); }}
+                                  className="bg-midnight border border-border/50 px-2.5 py-1.5 rounded-md text-xs text-shadow hover:border-red-500/30 hover:text-red-400 transition-colors">
+                                  🗑 Remove
+                                </button>
+                              </>
+                            )}
                           </div>
 
                           {/* Refinement actions */}
