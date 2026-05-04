@@ -67,7 +67,7 @@ export default function Home() {
       <footer className="border-t border-border">
         <div className="max-w-4xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-shadow">
           <div className="text-center sm:text-left">
-            <div>nobod.ai is operated by OPCORE Partners AG, Zürich</div>
+            <div>nobod.ai is operated by OPCORE Partners AG, Steinhausen ZG, Switzerland</div>
             <div className="mt-1">© 2026 OPCORE Partners AG</div>
           </div>
           <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">

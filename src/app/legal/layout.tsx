@@ -42,7 +42,7 @@ export default function LegalLayout({
 
       <footer className="border-t border-border mt-24">
         <div className="max-w-3xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-shadow">
-          <div>OPCORE Partners AG, Zürich · © 2026</div>
+          <div>OPCORE Partners AG, Steinhausen ZG · © 2026</div>
           <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             <Link href="/legal/impressum" className="hover:text-whisper transition">
               Impressum
