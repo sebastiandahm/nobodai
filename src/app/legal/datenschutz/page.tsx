@@ -26,10 +26,10 @@ export default function DatenschutzPage() {
         <p className="text-whisper leading-relaxed">
           Bei Fragen zum Datenschutz erreichen Sie uns per E-Mail unter{" "}
           <a
-            href="mailto:sebastian.dahm@opcore-partners.ch"
+            href="mailto:privacy@nobod.ai"
             className="text-amber hover:underline"
           >
-            sebastian.dahm@opcore-partners.ch
+            privacy@nobod.ai
           </a>
           .
         </p>

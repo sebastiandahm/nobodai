@@ -55,7 +55,7 @@ export default function Home() {
               Open dashboard →
             </Link>
             <a
-              href="mailto:sebastian.dahm@opcore-partners.ch"
+              href="mailto:hello@nobod.ai"
               className="px-6 py-3 rounded-lg border border-border text-whisper hover:border-shadow transition"
             >
               Contact us

@@ -64,10 +64,10 @@ export default function ImpressumPage() {
           <div>
             E-Mail:{" "}
             <a
-              href="mailto:sebastian.dahm@opcore-partners.ch"
+              href="mailto:hello@nobod.ai"
               className="text-amber hover:underline"
             >
-              sebastian.dahm@opcore-partners.ch
+              hello@nobod.ai
             </a>
           </div>
           <div>Telefon: +41 77 503 19 63</div>

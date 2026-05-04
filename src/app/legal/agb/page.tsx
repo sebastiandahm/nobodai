@@ -172,10 +172,10 @@ export default function AGBPage() {
           5.3 Die Kündigung kann jederzeit über die Account-Einstellungen
           oder per E-Mail an{" "}
           <a
-            href="mailto:sebastian.dahm@opcore-partners.ch"
+            href="mailto:legal@nobod.ai"
             className="text-amber hover:underline"
           >
-            sebastian.dahm@opcore-partners.ch
+            legal@nobod.ai
           </a>{" "}
           erfolgen.
         </p>
@@ -471,10 +471,10 @@ export default function AGBPage() {
             <div>
               E-Mail:{" "}
               <a
-                href="mailto:sebastian.dahm@opcore-partners.ch"
+                href="mailto:legal@nobod.ai"
                 className="text-amber hover:underline"
               >
-                sebastian.dahm@opcore-partners.ch
+                legal@nobod.ai
               </a>
             </div>
           </div>
@@ -542,7 +542,7 @@ export default function AGBPage() {
           <div className="rounded-lg border border-border bg-card p-4 text-sm text-whisper leading-relaxed space-y-2 font-mono">
             <p>
               An OPCORE Partners AG, Hinterbergstrasse 16, 6312 Steinhausen
-              ZG, Schweiz, sebastian.dahm@opcore-partners.ch:
+              ZG, Schweiz, legal@nobod.ai:
             </p>
             <p>
               Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*)
