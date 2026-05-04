@@ -17,9 +17,9 @@ export default function AGBPage() {
         </p>
       </div>
 
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-card text-xs text-amber">
-        <span className="h-1.5 w-1.5 rounded-full bg-amber" />
-        Entwurf in finaler juristischer Abstimmung — Stand 04. Mai 2026
+      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-card text-xs text-shadow">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        Stand: 04. Mai 2026
       </div>
 
       {/* 1 */}
