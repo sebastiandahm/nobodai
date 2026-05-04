@@ -3,9 +3,8 @@ import "./globals.css";
 import CookieBanner from "./_components/cookie-banner";
 
 export const metadata: Metadata = {
-  title: "nobod.ai",
-  description: "nobod.ai — operated by OPCORE Partners AG, Steinhausen ZG",
-  robots: { index: false, follow: false },
+  title: "nobod.ai — Let nobody write for you",
+  description: "AI-powered LinkedIn ghostwriter. Learns how you think, drafts posts in your voice, you approve in 30 seconds. Operated by OPCORE Partners AG.",
 };
 
 export default function RootLayout({
