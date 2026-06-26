@@ -194,9 +194,9 @@ Ein Trigger (`handle_new_user`) legt bei Registrierung automatisch ein Profil an
 > Diese Zugänge muss **Sebastian** (als Owner) in den jeweiligen Dashboards
 > freigeben. Michaels Account-/E-Mail-Adresse hier eintragen und abhaken.
 
-**Michael — Kontaktdaten (bitte ergänzen):**
-- E-Mail: `__________________`
-- GitHub-Username: `__________________`
+**Michael — Kontaktdaten:**
+- E-Mail: `michael.witzenleiter@rinascai.com`
+- GitHub-Username: `__________________` (noch offen — für die Repo-Einladung nötig)
 
 | # | System              | Was freigeben                                              | Wo                                                                 | Status |
 |---|---------------------|------------------------------------------------------------|--------------------------------------------------------------------|--------|
