@@ -5,7 +5,29 @@
 > Weiterentwicklung einstarten zu können: Architektur, Setup, Zugänge, Deployment
 > und offene Punkte.
 >
-> Stand: 2026-06-25 · Übergeben von: Sebastian Dahm (sebastian.dahm@opcore-partners.ch)
+> Stand: 2026-06-26 · Übergeben von: Sebastian Dahm (sebastian.dahm@opcore-partners.ch)
+
+> ## 🚨 ZUERST LESEN: Welche Homepage?
+>
+> Es existieren **zwei verwandte Projekte** (beide im Vercel-Team „OPCORE
+> Geschäftsmodelle", beide via Claude entwickelt):
+>
+> | | **rinascai-web** (= die LIVE-Homepage) | **nobodai** (Vorgänger) |
+> |---|---|---|
+> | GitHub-Repo | `sebastiandahm/rinascai-web` (**privat**) | `sebastiandahm/nobodai` |
+> | Vercel-Projekt | `rinascai-web` | `nobodai` |
+> | Domains | **rinasc.ai**, rinascai.ch/.de/.com (+www) | nobod.ai, www.nobod.ai |
+> | Status | **aktive Production** | älterer Stand |
+>
+> `rinasc.ai` ist ein **Rebranding** von nobod.ai. Wenn Michael „die Homepage"
+> übernimmt, ist damit **`rinascai-web` / rinasc.ai** gemeint.
+>
+> **Einschränkung dieses Dokuments:** Es wurde im `nobodai`-Repo erstellt, weil
+> diese Claude-Session **nur** Zugriff auf `sebastiandahm/nobodai` hat. Architektur,
+> Stack und Setup sind durch das Rebranding **weitgehend übertragbar**, aber Code,
+> Routen und konkrete Env-Werte von `rinascai-web` sind hier **nicht verifiziert**.
+> Für ein vollständig verifiziertes Paket bitte eine Claude-Code-Session starten,
+> die auf `sebastiandahm/rinascai-web` gescoped ist (siehe Abschnitt 12).
 
 ---
 
@@ -31,9 +53,10 @@ Voraussetzung: **Node.js ≥ 18**. Danach brauchst du die Zugänge aus
 **Abschnitt 7 (Access-Checkliste)** — die muss Sebastian dir in den jeweiligen
 Dashboards freigeben.
 
-> ⚠️ **Namens-Hinweis:** Lokal hieß der Ordner teilweise `rinascai-web`. Das
-> GitHub-Repository und der Produktname sind aber **`nobodai` / nobod.ai**.
-> Es ist dasselbe Projekt — nur unterschiedlich benannte Arbeitskopien.
+> ⚠️ **Dein lokaler Ordner `C:\dev\rinascai-web`** gehört zur **Live-Homepage
+> rinasc.ai** (Repo `sebastiandahm/rinascai-web`) — nicht zu diesem `nobodai`-Repo.
+> Siehe Banner ganz oben. Das hier gezeigte `git clone` betrifft das `nobodai`-Repo;
+> für rinasc.ai entsprechend `sebastiandahm/rinascai-web` klonen.
 
 ---
 
@@ -177,9 +200,10 @@ Ein Trigger (`handle_new_user`) legt bei Registrierung automatisch ein Profil an
 
 | # | System              | Was freigeben                                              | Wo                                                                 | Status |
 |---|---------------------|------------------------------------------------------------|--------------------------------------------------------------------|--------|
-| 1 | **GitHub**          | Als Collaborator (Write/Maintain) zum Repo `sebastiandahm/nobodai` einladen | GitHub → Repo → Settings → Collaborators                            | ☐ |
-| 2 | **Vercel**          | Als Member ins Vercel-Team/-Projekt nobod.ai einladen      | Vercel → Project → Settings → Members (bzw. Team-Settings)          | ☐ |
-| 3 | **Supabase**        | Als Member zur Organisation/Projekt `awmastpeybhlaiqqvace` | Supabase → Organization → Team / Members                           | ☐ |
+| 1 | **GitHub (Homepage)** | Collaborator (Write/Maintain) zum **privaten** Repo `sebastiandahm/rinascai-web` | GitHub → Repo → Settings → Collaborators                          | ☐ |
+| 1b| **GitHub (Vorgänger)** | Optional: Collaborator zu `sebastiandahm/nobodai`        | GitHub → Repo → Settings → Collaborators                            | ☐ |
+| 2 | **Vercel**          | Member ins Team „OPCORE Geschäftsmodelle" (`team_0zoR0bec8IM8KWUAaQeCQEqV`); mind. Projekt `rinascai-web` | Vercel → Team → Settings → Members | ☐ |
+| 3 | **Supabase**        | Member zur Org `vcrrjratrqnvnfggcyvi` / Projekt `nobodai` (`awmastpeybhlaiqqvace`, eu-west-1) | Supabase → Organization → Team / Members          | ☐ |
 | 4 | **Anthropic**       | Zugang zur Console-Org bzw. eigenen API-Key bereitstellen  | console.anthropic.com → Settings → Members                         | ☐ |
 | 5 | **fal.ai**          | Team-Zugang oder API-Key teilen                            | fal.ai → Dashboard → Keys/Team                                     | ☐ |
 | 6 | **Stripe**          | Als Team-Member einladen (Rolle nach Bedarf)               | dashboard.stripe.com → Settings → Team                             | ☐ |
@@ -252,3 +276,35 @@ Aus `DEPLOY.md` und Code-Stand übernommen — gute Startpunkte für die Weitere
 6. Kleinen Test-Branch anlegen und Preview-Deploy auf Vercel verifizieren.
 
 **Bei Fragen:** Sebastian Dahm — sebastian.dahm@opcore-partners.ch
+
+---
+
+## 12. Verifizierte Infrastruktur (Stand 2026-06-26)
+
+Folgende Werte wurden in dieser Session direkt aus Vercel/Supabase ausgelesen:
+
+**Vercel-Team:** „OPCORE Geschäftsmodelle" · `team_0zoR0bec8IM8KWUAaQeCQEqV`
+Relevante Projekte im Team:
+
+| Projekt        | Repo                          | Domains                                   | Rolle           |
+|----------------|-------------------------------|-------------------------------------------|-----------------|
+| `rinascai-web` | `sebastiandahm/rinascai-web` (privat) | rinasc.ai, rinascai.ch/.de/.com (+www) | **Live-Homepage** |
+| `nobodai`      | `sebastiandahm/nobodai`       | nobod.ai, www.nobod.ai                    | Vorgänger        |
+
+(Im Team existieren außerdem `opcore-hub` und `fritz-health-check-v2` — nicht Teil dieser Übergabe.)
+
+**Supabase:** Projekt `nobodai` · Ref `awmastpeybhlaiqqvace` · Org `vcrrjratrqnvnfggcyvi`
+· Region `eu-west-1` · Postgres 17 · Status ACTIVE_HEALTHY
+> Ob `rinascai-web` dieselbe Supabase-Instanz nutzt oder eine eigene, ist in dieser
+> Session **nicht verifizierbar** (Repo nicht zugänglich) — in der rinascai-web-Session prüfen.
+
+### Vollständig verifiziertes Paket für rinasc.ai erstellen
+
+Diese Session konnte den `rinascai-web`-Code nicht lesen (GitHub-Scope = nur `nobodai`).
+Um ein 1:1 verifiziertes Übergabepaket für die Live-Homepage zu erzeugen:
+
+1. Neue **Claude-Code-Web-Session** starten, **gescoped auf `sebastiandahm/rinascai-web`**.
+2. Diesen Prompt geben: *„Erstelle ein Übergabepaket (HANDOVER.md + .env.local.example)
+   für die Übernahme dieser Homepage durch Michael Witzenleiter — analog zur
+   HANDOVER.md im nobodai-Repo, aber mit dem echten Code/Env/Schema dieses Repos."*
+3. Das hier erstellte `HANDOVER.md` als Vorlage/Referenz mitgeben.
